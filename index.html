@@ -2,42 +2,42 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>素因数分解・特級</title>
     <style>
-        * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        * { 
+            box-sizing: border-box; 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            /* 対策2&3: 連打時のズームやテキスト選択を世界から消し去る */
+            touch-action: manipulation;
+            -webkit-user-select: none;
+            user-select: none;
+            -webkit-touch-callout: none;
+        }
         body { margin: 0; padding: 0; background: #ffffff; color: #000000; display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; }
         
         .game-wrapper { width: 100%; max-width: 380px; padding: 20px; display: flex; flex-direction: column; height: 100vh; justify-content: space-between; }
         
-        /* 上部のレイアウト調整 */
         .header-area { margin-top: 15px; width: 100%; }
         .progress { font-size: 1.1rem; font-weight: bold; text-align: right; color: #666; margin-bottom: 5px; }
         
-        /* お題表示エリア（画像2枚目風の構成） */
-        .problem-container { background: #1a1e24; color: #ffffff; border-radius: 16px; padding: 25px 15px; text-align: center; min-height: 200px; display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-        .problem-container.ready-mode { background: #ffffff; color: #000000; border: 3px solid #000; box-shadow: none; }
+        /* 元の色（白背景・黒枠）をベースに目立たせる構成 */
+        .problem-container { background: #ffffff; color: #000000; border: 3px solid #000; border-radius: 16px; padding: 25px 15px; text-align: center; min-height: 200px; display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%; }
         
-        /* 上側の小さな数式エリア */
-        .sub-display { font-size: 1.4rem; font-weight: bold; color: #aaaaaa; min-height: 2rem; margin-bottom: 10px; letter-spacing: 1px; }
-        .ready-mode .sub-display { color: #666; }
+        .sub-display { font-size: 1.4rem; font-weight: bold; color: #666666; min-height: 2rem; margin-bottom: 10px; letter-spacing: 1px; }
+        .main-display { font-size: 4.5rem; font-weight: 900; letter-spacing: 2px; line-height: 1.1; }
         
-        /* 下側のメイン巨大数字エリア */
-        .main-display { font-size: 4.5rem; font-weight: 900; letter-spacing: 2px; line-height: 1.1; transition: all 0.2s; }
-        .ready-mode .main-display { font-size: 3rem; font-weight: 900; }
-        
-        /* 入力欄（お題との隙間を無くす） */
         .input-box { font-size: 3.2rem; font-weight: bold; text-align: center; margin: 10px 0 15px 0; letter-spacing: 6px; border-bottom: 2px solid #ccc; padding-bottom: 3px; color: #000; }
         
-        /* テンキーエリア */
         .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0px; width: 100%; border-top: 1px solid #000; border-left: 1px solid #000; }
-        .btn { background: #ffffff; color: #000000; border: 1px solid #000000; padding: 22px 0; font-size: 1.8rem; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; user-select: none; width: 100%; }
+        
+        /* 対策4: タップ時のフィードバックをより強固に */
+        .btn { background: #ffffff; color: #000000; border: 1px solid #000000; padding: 22px 0; font-size: 1.8rem; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 100%; }
         .btn:active { background: #000000; color: #ffffff; }
         
         .btn-action { background: #dcdcdc; color: #000000; }
-        .btn-action:active { background: #aaaaaa; }
+        .btn-action:active { background: #888888; color: #ffffff; }
         
-        /* リザルト */
         .result-screen { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #ffffff; z-index: 10; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center; }
         .result-title { font-size: 2.5rem; font-weight: 900; margin-bottom: 30px; }
         .score-display { font-size: 1.8rem; margin: 15px 0; font-weight: bold; }
@@ -49,7 +49,7 @@
 <div class="game-wrapper" id="game-view">
     <div class="header-area">
         <div class="progress"><span id="q-num">1</span> / 10</div>
-        <div class="problem-container ready-mode" id="problem-box">
+        <div class="problem-container" id="problem-box">
             <div class="sub-display" id="display-sub"></div>
             <div class="main-display" id="display-main">PRESS P</div>
         </div>
@@ -58,22 +58,22 @@
     <div>
         <div class="input-box" id="display-input">00</div>
         
-        <div class="keypad">
-            <button class="btn btn-action" onclick="pressBack()">◀︎</button>
-            <button class="btn btn-action" onclick="pressComma()">,</button>
-            <button class="btn btn-action" onclick="pressP()">P</button>
+        <div class="keypad" id="keyboard">
+            <button class="btn btn-action" data-action="back">◀︎</button>
+            <button class="btn btn-action" data-action="comma">,</button>
+            <button class="btn btn-action" data-action="p">P</button>
 
-            <button class="btn" onclick="pressNum('7')">7</button>
-            <button class="btn" onclick="pressNum('8')">8</button>
-            <button class="btn" onclick="pressNum('9')">9</button>
+            <button class="btn" data-action="7">7</button>
+            <button class="btn" data-action="8">8</button>
+            <button class="btn" data-action="9">9</button>
 
-            <button class="btn" onclick="pressNum('4')">4</button>
-            <button class="btn" onclick="pressNum('5')">5</button>
-            <button class="btn" onclick="pressNum('6')">6</button>
+            <button class="btn" data-action="4">4</button>
+            <button class="btn" data-action="5">5</button>
+            <button class="btn" data-action="6">6</button>
 
-            <button class="btn" onclick="pressNum('1')">1</button>
-            <button class="btn" onclick="pressNum('2')">2</button>
-            <button class="btn" onclick="pressNum('3')">3</button>
+            <button class="btn" data-action="1">1</button>
+            <button class="btn" data-action="2">2</button>
+            <button class="btn" data-action="3">3</button>
         </div>
     </div>
 </div>
@@ -82,7 +82,7 @@
     <div class="result-title">GAME OVER</div>
     <div class="score-display">今回のスコア<span class="score-val" id="final-score">0</span></div>
     <div class="score-display" style="color: #666;">ハイスコア<span class="score-val" id="high-score-val">0</span></div>
-    <button class="btn" style="width: 200px; margin-top: 40px; border: 2px solid #000;" onclick="restartGame()">もう一度プレイ</button>
+    <button class="btn" style="width: 200px; margin-top: 40px; border: 2px solid #000;" id="btn-restart">もう一度プレイ</button>
 </div>
 
 <script>
@@ -104,8 +104,36 @@ let pressCount = 0;
 
 let isGameStarted = false; 
 let isWaitingNext = false;  
-let isSkipped = false; // スキップされたかどうかのフラグ
-let remainingFactor = null; // B面で入力すべき「もう片方の数字」
+let isSkipped = false; 
+let remainingFactor = null;
+
+// 🚀 高速タップイベント処理（遅延の完全排除）
+const keyboard = document.getElementById('keyboard');
+
+// スマホならtouchstart、PCならmousedownで即座にイベントを発火させる
+const startEvent = ('ontouchstart' in window) ? 'touchstart' : 'mousedown';
+
+keyboard.addEventListener(startEvent, function(e) {
+    const target = e.target.closest('button');
+    if (!target) return;
+    
+    e.preventDefault(); // ブラウザ独自の挙動（ズームや選択）を完全に潰す
+    
+    const action = target.getAttribute('data-action');
+    if (!action) return;
+    
+    // アクションに応じた関数へ最速で振り分け
+    if (action === 'back') pressBack();
+    else if (action === 'comma') pressComma();
+    else if (action === 'p') pressP();
+    else pressNum(action);
+});
+
+// リスタートボタンも最速化
+document.getElementById('btn-restart').addEventListener(startEvent, function(e) {
+    e.preventDefault();
+    restartGame();
+});
 
 function initGame() {
     gameQuestions = [...questionBank].sort(() => 0.5 - Math.random()).slice(0, 10);
@@ -119,9 +147,6 @@ function initGame() {
     remainingFactor = null;
     
     document.getElementById('q-num').innerText = "1";
-    
-    const box = document.getElementById('problem-box');
-    box.classList.add('ready-mode');
     document.getElementById('display-sub').innerText = "";
     document.getElementById('display-main').innerText = "PRESS P";
     
@@ -130,8 +155,6 @@ function initGame() {
 
 function startFirstQuestion() {
     isGameStarted = true;
-    const box = document.getElementById('problem-box');
-    box.classList.remove('ready-mode');
     showQuestion();
 }
 
@@ -150,7 +173,6 @@ function showQuestion() {
     document.getElementById('q-num').innerText = currentIdx + 1;
     
     const currentQ = gameQuestions[currentIdx];
-    // Aのとき：上もお題、下もお題（巨大表示）
     document.getElementById('display-sub').innerText = currentQ.number;
     document.getElementById('display-main').innerText = currentQ.number;
     document.getElementById('display-main').style.fontSize = "4.5rem";
@@ -204,7 +226,6 @@ function pressComma() {
 }
 
 function triggerPass() {
-    // すでに状態B（正解後、またはスキップ後）のときに再度スキップ操作されたら次の問題へ
     if (isWaitingNext) {
         currentIdx++;
         showQuestion();
@@ -216,10 +237,9 @@ function triggerPass() {
     updateInputDisplay();
 
     const currentQ = gameQuestions[currentIdx];
-    // スキップ時のB: お題= までが上、〜×〜 が下
     document.getElementById('display-sub').innerText = `${currentQ.number} =`;
     document.getElementById('display-main').innerText = `${currentQ.p} × ${currentQ.q}`;
-    document.getElementById('display-main').style.fontSize = "3.2rem"; // 式が見切れないよう少し調整
+    document.getElementById('display-main').style.fontSize = "3.2rem";
     
     isWaitingNext = true;
     isSkipped = true;
@@ -230,16 +250,11 @@ function checkAnswerA() {
         const playerAns = parseInt(inputDigits.join(''));
         const currentQ = gameQuestions[currentIdx];
         
-        // pかqのどちらを入力しても正解になる
         if (playerAns === currentQ.p || playerAns === currentQ.q) {
             totalScore += currentPot;
-            
-            // もう片方の数字を特定
             remainingFactor = (playerAns === currentQ.p) ? currentQ.q : currentQ.p;
             
-            // Bのとき: 上は途中式 (お題 = 当てた数字 ×)
             document.getElementById('display-sub').innerText = `${currentQ.number} = ${playerAns} ×`;
-            // 下はもう片方
             document.getElementById('display-main').innerText = remainingFactor;
             document.getElementById('display-main').style.fontSize = "4.5rem";
             
@@ -248,25 +263,24 @@ function checkAnswerA() {
         
         inputDigits = ['0', '0'];
         pressCount = 0;
-        setTimeout(updateInputDisplay, 100); 
+        // 連打を阻害しないよう瞬時にリセット
+        updateInputDisplay(); 
     }
 }
 
 function checkAnswerB() {
-    // スキップ状態の時は数字入力での突破はなし（Pかスキップのみ）
     if (isSkipped) return;
 
     if (inputDigits[0] !== ',' && inputDigits[1] !== ',') {
         const playerAns = parseInt(inputDigits.join(''));
         
-        // 表示されている「もう片方の数字」を正しくなぞれたら次の問題へ進む
         if (playerAns === remainingFactor) {
             currentIdx++;
             showQuestion();
         } else {
             inputDigits = ['0', '0'];
             pressCount = 0;
-            setTimeout(updateInputDisplay, 100);
+            updateInputDisplay();
         }
     }
 }
@@ -284,7 +298,6 @@ function pressP() {
         return;
     }
 
-    // B状態であればPで確実に進める（正解後でもスキップ後でも有効）
     if (isWaitingNext) {
         currentIdx++;
         showQuestion();
