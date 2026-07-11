@@ -11,14 +11,19 @@
         .game-wrapper { width: 100%; max-width: 380px; padding: 20px; display: flex; flex-direction: column; height: 100vh; justify-content: space-between; }
         .progress { font-size: 1.2rem; font-weight: bold; text-align: left; margin-bottom: 10px; color: #666; }
         
-        /* お題表示エリア：高さを少し広げ、完全に中央へ固定 */
         .problem-box { border: 2px solid #000; border-radius: 8px; text-align: center; font-size: 3.2rem; font-weight: 900; letter-spacing: 2px; line-height: 1.2; height: 140px; display: flex; align-items: center; justify-content: center; width: 100%; }
         .problem-box.ready { font-size: 2.2rem; letter-spacing: 1px; color: #666; }
         
         .input-box { font-size: 3.5rem; font-weight: bold; text-align: center; margin: 20px 0; letter-spacing: 6px; border-bottom: 2px solid #ccc; padding-bottom: 5px; }
-        .keypad { display: grid; grid-template-columns: repeat(3, 1fr) 75px; gap: 12px; margin-bottom: 10px; }
-        .btn { background: #ffffff; color: #000000; border: 2px solid #000000; padding: 18px 0; font-size: 1.6rem; font-weight: bold; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; user-select: none; }
+        
+        /* テンキーエリア：3列構成、隙間を0に */
+        .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0px; width: 100%; border-top: 1px solid #000; border-left: 1px solid #000; }
+        
+        /* ボタン：隙間がないため、外枠同士が重なるようにborderを調整して大きく見せる */
+        .btn { background: #ffffff; color: #000000; border: 1px solid #000000; padding: 22px 0; font-size: 1.8rem; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; user-select: none; width: 100%; }
         .btn:active { background: #000000; color: #ffffff; }
+        
+        /* 上段アクションキー用の白黒反転デザイン */
         .btn-action { background: #000000; color: #ffffff; }
         .btn-action:active { background: #ffffff; color: #000000; }
         
@@ -40,22 +45,21 @@
         <div class="input-box" id="display-input">00</div>
         
         <div class="keypad">
+            <button class="btn btn-action" onclick="pressBack()">◀︎</button>
+            <button class="btn btn-action" onclick="pressComma()">,</button>
+            <button class="btn btn-action" onclick="pressP()">P</button>
+
             <button class="btn" onclick="pressNum('7')">7</button>
             <button class="btn" onclick="pressNum('8')">8</button>
             <button class="btn" onclick="pressNum('9')">9</button>
-            <button class="btn btn-action" onclick="pressP()">P</button>
 
             <button class="btn" onclick="pressNum('4')">4</button>
             <button class="btn" onclick="pressNum('5')">5</button>
             <button class="btn" onclick="pressNum('6')">6</button>
-            <button class="btn btn-action" onclick="pressBack()">◀︎</button>
 
             <button class="btn" onclick="pressNum('1')">1</button>
             <button class="btn" onclick="pressNum('2')">2</button>
             <button class="btn" onclick="pressNum('3')">3</button>
-            <button class="btn" onclick="pressComma()">,</button>
-
-            <button class="btn" style="grid-column: span 3;" onclick="pressNum('0')">0</button>
         </div>
     </div>
 </div>
@@ -64,7 +68,7 @@
     <div class="result-title">GAME OVER</div>
     <div class="score-display">今回のスコア<span class="score-val" id="final-score">0</span></div>
     <div class="score-display" style="color: #666;">ハイスコア<span class="score-val" id="high-score-val">0</span></div>
-    <button class="btn" style="width: 200px; margin-top: 40px;" onclick="restartGame()">もう一度プレイ</button>
+    <button class="btn" style="width: 200px; margin-top: 40px; border: 2px solid #000;" onclick="restartGame()">もう一度プレイ</button>
 </div>
 
 <script>
