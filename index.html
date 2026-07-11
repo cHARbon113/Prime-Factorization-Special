@@ -5,11 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>素因数分解・特級</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap');
-
         * { 
             box-sizing: border-box; 
-            font-family: 'Noto Sans JP', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             touch-action: manipulation;
             -webkit-user-select: none;
             user-select: none;
@@ -20,36 +18,55 @@
         .game-wrapper { width: 100%; max-width: 380px; padding: 20px; display: flex; flex-direction: column; height: 100vh; justify-content: space-between; }
         
         .header-area { margin-top: 15px; width: 100%; }
-        .progress { font-size: 1.1rem; font-weight: 700; text-align: right; color: #666; margin-bottom: 5px; }
+        .progress { font-size: 1.1rem; text-align: right; color: #666; margin-bottom: 5px; }
         
         /* お題コンテナ */
-        .problem-container { background: #ffffff; color: #000000; border: 3px solid #000; border-radius: 16px; padding: 25px 15px; text-align: center; min-height: 200px; display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%; }
+        .problem-container { background: #ffffff; color: #000000; border: 2px solid #000; border-radius: 12px; padding: 25px 15px; text-align: center; min-height: 200px; display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%; }
         
-        .sub-display { font-size: 1.4rem; font-weight: 700; color: #666666; min-height: 2rem; margin-bottom: 10px; letter-spacing: 1px; }
+        .sub-display { font-size: 1.4rem; color: #666666; min-height: 2rem; margin-bottom: 10px; letter-spacing: 1px; }
+        .main-display { font-size: 4.5rem; font-weight: normal; letter-spacing: 1px; line-height: 1.1; }
         
-        /* メイン数字：通常の4桁・2桁時は 4.5rem */
-        .main-display { font-size: 4.5rem; font-weight: 700; letter-spacing: 2px; line-height: 1.1; }
-        
-        /* 【バグ対策】待機画面（PRESS P）用のサイズ */
-        .ready-mode .main-display { font-size: 2.5rem; }
-        
-        /* 【バグ対策】スキップ時の数式用のサイズ */
+        .ready-mode .main-display { font-size: 2.2rem; }
         .skipped-mode .main-display { font-size: 3.2rem; }
         
-        .input-box { font-size: 3.2rem; font-weight: 700; text-align: center; margin: 10px 0 15px 0; letter-spacing: 6px; border-bottom: 2px solid #ccc; padding-bottom: 3px; color: #000; }
+        /* 入力欄 */
+        .input-box { font-size: 3.2rem; text-align: center; margin: 10px 0 15px 0; letter-spacing: 6px; border-bottom: 2px solid #ccc; padding-bottom: 3px; color: #000; transition: transform 0.1s ease; }
         
         .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0px; width: 100%; border-top: 1px solid #000; border-left: 1px solid #000; }
         
-        .btn { background: #ffffff; color: #000000; border: 1px solid #000000; padding: 22px 0; font-size: 1.8rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 100%; }
-        .btn:active { background: #000000; color: #ffffff; }
-        
+        .btn { background: #ffffff; color: #000000; border: 1px solid #000000; padding: 22px 0; font-size: 1.8rem; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 100%; outline: none; }
         .btn-action { background: #dcdcdc; color: #000000; }
+        
+        .btn:active { background: #000000; color: #ffffff; }
         .btn-action:active { background: #888888; color: #ffffff; }
         
+        /* 🚀 演出用アニメーション群 */
+        .pop-anime { animation: pop 0.12s ease-out; }
+        @keyframes pop {
+            0% { transform: scale(0.96); }
+            50% { transform: scale(1.02); }
+            100% { transform: scale(1.0); }
+        }
+        
+        /* 正解時のお題箱バウンド */
+        .correct-anime { animation: correct-bounce 0.25s ease-out; }
+        @keyframes correct-bounce {
+            0% { transform: scale(1.0); }
+            40% { transform: scale(1.04); box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+            100% { transform: scale(1.0); box-shadow: 0 0px 0px rgba(0,0,0,0); }
+        }
+        
+        /* 正解時の入力欄フラッシュ */
+        .flash-anime { animation: input-flash 0.15s ease-out; }
+        @keyframes input-flash {
+            0% { opacity: 0.3; transform: scale(0.95); color: #00dd00; }
+            100% { opacity: 1; transform: scale(1.0); color: #000000; }
+        }
+        
+        /* リザルト画面 */
         .result-screen { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #ffffff; z-index: 10; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center; }
-        .result-title { font-size: 2.5rem; font-weight: 700; margin-bottom: 30px; }
-        .score-display { font-size: 1.8rem; margin: 15px 0; font-weight: 700; }
-        .score-val { font-size: 2.8rem; display: block; margin-top: 10px; font-weight: 700; }
+        .score-display { font-size: 1.6rem; margin: 15px 0; color: #333; }
+        .score-val { font-size: 3rem; display: block; margin-top: 10px; font-weight: bold; color: #000; }
     </style>
 </head>
 <body>
@@ -87,10 +104,9 @@
 </div>
 
 <div class="result-screen" id="result-view">
-    <div class="result-title">GAME OVER</div>
-    <div class="score-display">今回のスコア<span class="score-val" id="final-score">0</span></div>
-    <div class="score-display" style="color: #666;">ハイスコア<span class="score-val" id="high-score-val">0</span></div>
-    <button class="btn" style="width: 200px; margin-top: 40px; border: 2px solid #000;" id="btn-restart">もう一度プレイ</button>
+    <div class="score-display">YOUR SCORE<span class="score-val" id="final-score">0</span></div>
+    <div class="score-display" style="color: #666;">HIGH SCORE<span class="score-val" id="high-score-val" style="font-size: 2.2rem; color: #666;">0</span></div>
+    <button class="btn" style="width: 200px; margin-top: 40px; border: 2px solid #000; border-radius: 8px;" id="btn-restart">RETRY</button>
 </div>
 
 <script>
@@ -116,6 +132,8 @@ let isSkipped = false;
 let remainingFactor = null;
 
 const keyboard = document.getElementById('keyboard');
+const problemBox = document.getElementById('problem-box');
+const inputDisplay = document.getElementById('display-input');
 const startEvent = ('ontouchstart' in window) ? 'touchstart' : 'mousedown';
 
 keyboard.addEventListener(startEvent, function(e) {
@@ -123,6 +141,10 @@ keyboard.addEventListener(startEvent, function(e) {
     if (!target) return;
     
     e.preventDefault();
+    
+    target.classList.remove('pop-anime');
+    void target.offsetWidth;
+    target.classList.add('pop-anime');
     
     const action = target.getAttribute('data-action');
     if (!action) return;
@@ -133,9 +155,23 @@ keyboard.addEventListener(startEvent, function(e) {
     else pressNum(action);
 });
 
+keyboard.addEventListener('animationend', function(e) {
+    if (e.target.tagName === 'BUTTON') {
+        e.target.classList.remove('pop-anime');
+    }
+});
+
+// アニメーションクラスを自動でクリーンアップする仕掛け
+problemBox.addEventListener('animationend', () => problemBox.classList.remove('correct-anime'));
+inputDisplay.addEventListener('animationend', () => inputDisplay.classList.remove('flash-anime'));
+
 document.getElementById('btn-restart').addEventListener(startEvent, function(e) {
     e.preventDefault();
-    restartGame();
+    const target = e.target;
+    target.classList.remove('pop-anime');
+    void target.offsetWidth;
+    target.classList.add('pop-anime');
+    setTimeout(restartGame, 100);
 });
 
 function initGame() {
@@ -153,10 +189,7 @@ function initGame() {
     document.getElementById('display-sub').innerText = "";
     document.getElementById('display-main').innerText = "PRESS P";
     
-    // 状態を初期（ready-mode）に戻す
-    const box = document.getElementById('problem-box');
-    box.className = "problem-container ready-mode";
-    
+    problemBox.className = "problem-container ready-mode";
     updateInputDisplay();
 }
 
@@ -179,9 +212,7 @@ function showQuestion() {
     remainingFactor = null;
     document.getElementById('q-num').innerText = currentIdx + 1;
     
-    // 通常モードのスタイルにリセット
-    const box = document.getElementById('problem-box');
-    box.className = "problem-container";
+    problemBox.className = "problem-container";
     
     const currentQ = gameQuestions[currentIdx];
     document.getElementById('display-sub').innerText = currentQ.number;
@@ -199,7 +230,20 @@ function showQuestion() {
 }
 
 function updateInputDisplay() {
-    document.getElementById('display-input').innerText = inputDigits.join('');
+    inputDisplay.innerText = inputDigits.join('');
+}
+
+// 🚀 正解演出を発火させる関数
+function triggerCorrectEffects() {
+    // お題箱のアニメーション適用
+    problemBox.classList.remove('correct-anime');
+    void problemBox.offsetWidth;
+    problemBox.classList.add('correct-anime');
+
+    // 入力エリアのアニメーション適用
+    inputDisplay.classList.remove('flash-anime');
+    void inputDisplay.offsetWidth;
+    inputDisplay.classList.add('flash-anime');
 }
 
 function pressNum(numStr) {
@@ -245,14 +289,13 @@ function triggerPass() {
     inputDigits = ['0', '0'];
     pressCount = 0;
     updateInputDisplay();
+    triggerCorrectEffects(); // パス時も演出を入れる
 
     const currentQ = gameQuestions[currentIdx];
     document.getElementById('display-sub').innerText = `${currentQ.number} =`;
     document.getElementById('display-main').innerText = `${currentQ.p} × ${currentQ.q}`;
     
-    // スキップモードのサイズに変更
-    const box = document.getElementById('problem-box');
-    box.className = "problem-container skipped-mode";
+    problemBox.className = "problem-container skipped-mode";
     
     isWaitingNext = true;
     isSkipped = true;
@@ -270,10 +313,9 @@ function checkAnswerA() {
             document.getElementById('display-sub').innerText = `${currentQ.number} = ${playerAns} ×`;
             document.getElementById('display-main').innerText = remainingFactor;
             
-            // 通常表示に戻す（数式ではなく単体の数字のため）
-            const box = document.getElementById('problem-box');
-            box.className = "problem-container";
+            problemBox.className = "problem-container";
             
+            triggerCorrectEffects(); // 🚀 正解エフェクトON！
             isWaitingNext = true;
         }
         
@@ -290,8 +332,10 @@ function checkAnswerB() {
         const playerAns = parseInt(inputDigits.join(''));
         
         if (playerAns === remainingFactor) {
+            triggerCorrectEffects(); // 🚀 2つ目正解時もON！
             currentIdx++;
-            showQuestion();
+            // アニメーションの余韻を少しだけ感じさせてから次へ（違和感があれば即時でもOK）
+            setTimeout(showQuestion, 80);
         } else {
             inputDigits = ['0', '0'];
             pressCount = 0;
@@ -314,8 +358,9 @@ function pressP() {
     }
 
     if (isWaitingNext) {
+        triggerCorrectEffects();
         currentIdx++;
-        showQuestion();
+        setTimeout(showQuestion, 80);
     }
 }
 
@@ -329,8 +374,8 @@ function showResult() {
         localStorage.setItem('prime_high_score', highScore);
     }
     
-    document.getElementById('final-score').innerText = totalScore.toLocaleString() + "点";
-    document.getElementById('high-score-val').innerText = parseInt(highScore).toLocaleString() + "点";
+    document.getElementById('final-score').innerText = totalScore.toLocaleString() + " PTS";
+    document.getElementById('high-score-val').innerText = parseInt(highScore).toLocaleString() + " PTS";
 }
 
 function restartGame() {
