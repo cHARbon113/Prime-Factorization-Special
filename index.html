@@ -20,7 +20,6 @@
         .header-area { margin-top: 15px; width: 100%; }
         .progress { font-size: 1.1rem; text-align: right; color: #666; margin-bottom: 5px; font-weight: 600; }
         
-        /* お題コンテナ */
         .problem-container { background: #ffffff; color: #000000; border: 2.5px solid #000; border-radius: 12px; padding: 25px 15px; text-align: center; min-height: 200px; display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%; }
         
         .sub-display { font-size: 1.4rem; color: #666666; min-height: 2rem; margin-bottom: 10px; letter-spacing: 1px; font-weight: 500; }
@@ -29,8 +28,7 @@
         .ready-mode .main-display { font-size: 2.2rem; }
         .skipped-mode .main-display { font-size: 3.2rem; }
         
-        /* 入力欄 */
-        .input-box { font-size: 3.2rem; text-align: center; margin: 10px 0 15px 0; letter-spacing: 6px; border-bottom: 2.5px solid #ccc; padding-bottom: 3px; color: #000; transition: transform 0.1s ease; font-weight: 600; }
+        .input-box { font-size: 3.2rem; text-align: center; margin: 10px 0 15px 0; letter-spacing: 6px; border-bottom: 2.5px solid #ccc; padding-bottom: 3px; color: #000; font-weight: 600; }
         
         .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0px; width: 100%; border-top: 1.5px solid #000; border-left: 1.5px solid #000; }
         
@@ -40,7 +38,7 @@
         .btn:active { background: #000000; color: #ffffff; }
         .btn-action:active { background: #888888; color: #ffffff; }
         
-        /* アニメーション群 */
+        /* アニメーション */
         .pop-anime { animation: pop 0.12s ease-out; }
         @keyframes pop {
             0% { transform: scale(0.96); }
@@ -61,21 +59,23 @@
             100% { opacity: 1; transform: scale(1.0); color: #000000; }
         }
         
-        /* 🚀 リザルト表示用スタイル */
+        /* 🚀 新・リザルト用スタイル */
         .result-screen { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #ffffff; z-index: 10; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center; }
         
-        .accuracy-display { font-size: 3.5rem; font-weight: 600; color: #000; margin-bottom: 20px; }
+        /* % と タイム のスタイル（サイズを揃えてスマートに） */
+        .accuracy-display { font-size: 2.0rem; font-weight: 600; color: #000; margin-bottom: 5px; }
+        .time-display { font-size: 1.8rem; font-weight: 600; color: #444; margin-bottom: 25px; }
         
-        /* スコア行の共通設定 */
-        .result-row { font-size: 1.4rem; margin: 10px 0; color: #333; font-weight: 500; }
-        .result-row span { font-weight: 600; color: #000; }
+        /* 「ハイスコアを更新！」の文字サイズ設定 */
+        .new-record-title { font-size: 2.0rem; font-weight: 600; color: #000; margin-bottom: 15px; letter-spacing: 0.5px; }
         
-        /* 新記録達成時のテキスト */
-        .new-record-title { font-size: 1.8rem; font-weight: 600; color: #000; margin-bottom: 20px; letter-spacing: 1px; }
+        /* スコアを目立当てるための巨大フォント共通化 (2.6rem) */
+        .huge-score-box { font-size: 2.6rem; font-weight: 600; color: #000; margin: 12px 0; line-height: 1.2; }
+        .huge-score-box span { font-size: 1.2rem; color: #666; font-weight: 500; display: block; margin-bottom: 2px; }
         
-        /* 新記録推移（〜→〜）のレイアウト */
-        .record-transition { margin: 25px 0; font-weight: 500; color: #333; display: flex; align-items: center; justify-content: center; gap: 8px; }
-        .old-score { font-size: 1.3rem; color: #666; }
+        /* 新記録推移（〜→〜）の横並びレイアウト */
+        .record-transition { margin: 20px 0; font-weight: 500; color: #333; display: flex; align-items: flex-end; justify-content: center; gap: 8px; }
+        .old-score { font-size: 1.3rem; color: #666; padding-bottom: 3px; }
         .new-score { font-size: 2.6rem; font-weight: 600; color: #000; }
     </style>
 </head>
@@ -115,6 +115,7 @@
 
 <div class="result-screen" id="result-view">
     <div class="accuracy-display" id="result-accuracy">0%</div>
+    <div class="time-display" id="result-time">00:00.00</div>
     
     <div id="result-content-area" style="width: 100%;"></div>
     
@@ -133,7 +134,7 @@ const questionBank = [
 let gameQuestions = [];
 let currentIdx = 0;
 let totalScore = 0;
-let correctCount = 0; // 正解数をカウントする変数を追加
+let correctCount = 0; 
 let currentPot = 10000;
 let timerInterval;
 let inputDigits = ['0', '0'];
@@ -143,6 +144,10 @@ let isGameStarted = false;
 let isWaitingNext = false;  
 let isSkipped = false; 
 let remainingFactor = null;
+
+// タイム計測用変数
+let startTime = 0;
+let endTime = 0;
 
 const keyboard = document.getElementById('keyboard');
 const problemBox = document.getElementById('problem-box');
@@ -208,11 +213,13 @@ function initGame() {
 
 function startFirstQuestion() {
     isGameStarted = true;
+    startTime = performance.now(); // ゲーム開始時間をミリ秒で記録
     showQuestion();
 }
 
 function showQuestion() {
     if (currentIdx >= gameQuestions.length) {
+        endTime = performance.now(); // ゲームクリア時間を記録
         clearInterval(timerInterval);
         showResult();
         return;
@@ -342,7 +349,7 @@ function checkAnswerB() {
         const playerAns = parseInt(inputDigits.join(''));
         
         if (playerAns === remainingFactor) {
-            correctCount++; // 両方の素因数を正解した時点でカウントアップ
+            correctCount++; 
             triggerCorrectEffects();
             currentIdx++;
             setTimeout(showQuestion, 80);
@@ -374,20 +381,36 @@ function pressP() {
     }
 }
 
-// 🚀 動的リザルト生成関数
+// 🚀 クリアタイムのフォーマット化用関数
+function formatClearTime(ms) {
+    const totalSeconds = ms / 1000;
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = Math.floor(totalSeconds % 60);
+    const milliseconds = Math.floor((ms % 1000) / 10);
+    
+    const strMin = String(minutes).padStart(2, '0');
+    const strSec = String(seconds).padStart(2, '0');
+    const strMs = String(milliseconds).padStart(2, '0');
+    
+    return `${strMin}:${strSec}.${strMs}`;
+}
+
 function showResult() {
     document.getElementById('game-view').style.display = "none";
     document.getElementById('result-view').style.display = "flex";
     
-    // 正解率（10%刻み）の計算
     const accuracy = (correctCount / gameQuestions.length) * 100;
     document.getElementById('result-accuracy').innerText = `${accuracy}%`;
+    
+    // クリアタイムを算出して表示
+    const clearTimeMs = endTime - startTime;
+    document.getElementById('result-time').innerText = formatClearTime(clearTimeMs);
     
     const oldHighScore = parseInt(localStorage.getItem('prime_high_score') || 0);
     const contentArea = document.getElementById('result-content-area');
     
     if (totalScore > oldHighScore) {
-        // 【パターン1】 ハイスコア更新時
+        // 【ハイスコア更新時】
         localStorage.setItem('prime_high_score', totalScore);
         
         contentArea.innerHTML = `
@@ -398,10 +421,10 @@ function showResult() {
             </div>
         `;
     } else {
-        // 【パターン2】 通常時
+        // 【通常時】 スコア・ハイスコア両方を巨大表示 (2.6rem) へ昇格
         contentArea.innerHTML = `
-            <div class="result-row">スコア：<span>${totalScore.toLocaleString()}</span></div>
-            <div class="result-row" style="color: #666;">ハイスコア：<span>${oldHighScore.toLocaleString()}</span></div>
+            <div class="huge-score-box"><span>SCORE</span>${totalScore.toLocaleString()}</div>
+            <div class="huge-score-box" style="color: #666;"><span>HIGH SCORE</span>${oldHighScore.toLocaleString()}</div>
         `;
     }
 }
