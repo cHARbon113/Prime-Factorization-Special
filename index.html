@@ -2,72 +2,87 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>素因数分解・特級 (テンキー版)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>素因数分解・特級</title>
     <style>
-        body { font-family: monospace; text-align: center; background: #1a1a1a; color: #fff; margin-top: 50px; }
+        * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { margin: 0; padding: 0; background: #ffffff; color: #000000; display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; }
         
-        /* 全体の横幅を320pxに統一 */
-        .game-container { width: 320px; margin: 0 auto; padding: 20px; background: #2a2a2a; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.5); box-sizing: border-box; }
-        .display-area { width: 100%; background: #000; padding: 15px; border-radius: 10px; margin-bottom: 20px; min-height: 120px; display: flex; flex-direction: column; justify-content: center; box-sizing: border-box; border: 2px solid #444; }
-        .keypad { width: 100%; display: grid; grid-template-columns: repeat(3, 1fr) 70px; gap: 10px; box-sizing: border-box; }
+        .game-wrapper { width: 100%; max-width: 380px; padding: 20px; display: flex; flex-direction: column; height: 100vh; justify-content: space-between; }
         
-        .problem { font-size: 2.2rem; font-weight: bold; color: #0f0; word-break: break-all; }
-        .input-view { font-size: 2.5rem; color: #fff; margin-top: 10px; min-height: 3rem; letter-spacing: 4px; font-weight: bold; }
-        .status-msg { font-size: 1rem; color: #ffeb3b; min-height: 1.2rem; margin-top: 5px; }
+        .progress { font-size: 1.2rem; font-weight: bold; text-align: left; margin-bottom: 5px; color: #666; }
         
-        .btn { background: #3a3a3a; color: #fff; border: none; padding: 15px 0; font-size: 1.5rem; border-radius: 8px; cursor: pointer; user-select: none; }
-        .btn:active { background: #555; }
-        .btn-p { background: #ff9800; }
-        .btn-p:active { background: #e68a00; }
-        .btn-back { background: #e53935; }
-        .btn-back:active { background: #c62828; }
-        .btn-comma { background: #5c6bc0; }
-        .btn-comma:active { background: #3f51b5; }
+        .problem-box { border: 2px solid #000; padding: 25px 10px; border-radius: 8px; text-align: center; font-size: 3rem; font-weight: 900; letter-spacing: 2px; line-height: 1.2; min-height: 110px; display: flex; align-items: center; justify-content: center; }
+        /* スタート待機時用の少し小さめフォントサイズ設定 */
+        .problem-box.ready { font-size: 2.2rem; letter-spacing: 1px; color: #666; }
         
-        .info { font-size: 0.85rem; margin-bottom: 15px; color: #ccc; text-align: left; line-height: 1.4; }
+        .input-box { font-size: 3.5rem; font-weight: bold; text-align: center; margin: 15px 0; letter-spacing: 6px; border-bottom: 2px solid #ccc; padding-bottom: 5px; }
+        
+        .keypad { display: grid; grid-template-columns: repeat(3, 1fr) 75px; gap: 12px; margin-bottom: 10px; }
+        
+        .btn { background: #ffffff; color: #000000; border: 2px solid #000000; padding: 18px 0; font-size: 1.6rem; font-weight: bold; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; user-select: none; }
+        .btn:active { background: #000000; color: #ffffff; }
+        
+        .btn-action { background: #000000; color: #ffffff; }
+        .btn-action:active { background: #ffffff; color: #000000; }
+        
+        .result-screen { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #ffffff; z-index: 10; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center; }
+        .result-title { font-size: 2.5rem; font-weight: 900; margin-bottom: 30px; }
+        .score-display { font-size: 1.8rem; margin: 15px 0; font-weight: bold; }
+        .score-val { font-size: 2.8rem; display: block; margin-top: 10px; font-weight: 900; }
     </style>
 </head>
 <body>
 
-<div class="game-container">
-    <h2>素因数分解・特級</h2>
-    <div class="info">
-        問: <span id="q-num">1</span>/10 | スコア: <span id="total-score">0</span><br>
-        ハイスコア: <span id="high-score">0</span><br>
-        現在の価値: <span id="current-pot">10000</span> 点
+<div class="game-wrapper" id="game-view">
+    <div>
+        <div class="progress"><span id="q-num">1</span> / 10</div>
+        <div class="problem-box ready" id="display-problem">PRESS P</div>
     </div>
     
-    <div class="display-area">
-        <div class="problem" id="display-problem">----</div>
-        <div class="input-view" id="display-input">00</div>
-        <div class="status-msg" id="status-msg"></div>
-    </div>
+    <div>
+        <div class="input-box" id="display-input">00</div>
+        
+        <div class="keypad">
+            <button class="btn" onclick="pressNum('7')">7</button>
+            <button class="btn" onclick="pressNum('8')">8</button>
+            <button class="btn" onclick="pressNum('9')">9</button>
+            <button class="btn btn-action" onclick="pressP()">P</button>
 
-    <div class="keypad">
-        <button class="btn" onclick="pressNum('7')">7</button>
-        <button class="btn" onclick="pressNum('8')">8</button>
-        <button class="btn" onclick="pressNum('9')">9</button>
-        <button class="btn btn-p" onclick="pressP()">P</button>
+            <button class="btn" onclick="pressNum('4')">4</button>
+            <button class="btn" onclick="pressNum('5')">5</button>
+            <button class="btn" onclick="pressNum('6')">6</button>
+            <button class="btn btn-action" onclick="pressBack()">◀︎</button>
 
-        <button class="btn" onclick="pressNum('4')">4</button>
-        <button class="btn" onclick="pressNum('5')">5</button>
-        <button class="btn" onclick="pressNum('6')">6</button>
-        <button class="btn btn-back" onclick="pressBack()">◀︎</button>
+            <button class="btn" onclick="pressNum('1')">1</button>
+            <button class="btn" onclick="pressNum('2')">2</button>
+            <button class="btn" onclick="pressNum('3')">3</button>
+            <button class="btn" onclick="pressComma()">,</button>
 
-        <button class="btn" onclick="pressNum('1')">1</button>
-        <button class="btn" onclick="pressNum('2')">2</button>
-        <button class="btn" onclick="pressNum('3')">3</button>
-        <button class="btn btn-comma" onclick="pressComma()">,</button>
+            <button class="btn" style="grid-column: span 3;" onclick="pressNum('0')">0</button>
+        </div>
     </div>
 </div>
 
+<div class="result-screen" id="result-view">
+    <div class="result-title">GAME OVER</div>
+    <div class="score-display">今回のスコア<span class="score-val" id="final-score">0</span></div>
+    <div class="score-display" style="color: #666;">ハイスコア<span class="score-val" id="high-score-val">0</span></div>
+    <button class="btn" style="width: 200px; margin-top: 40px;" onclick="restartGame()">もう一度プレイ</button>
+</div>
+
 <script>
-// ダミーの問題データ
 const questionBank = [
     { number: 1769, answers: [29, 61] },
     { number: 1457, answers: [31, 47] },
     { number: 2491, answers: [47, 53] },
-    { number: 4087, answers: [61, 67] }
+    { number: 4087, answers: [61, 67] },
+    { number: 2021, answers: [43, 47] },
+    { number: 1517, answers: [37, 41] },
+    { number: 3233, answers: [53, 61] },
+    { number: 3953, answers: [59, 67] },
+    { number: 4991, answers: [67, 73] },
+    { number: 6697, answers: [73, 89] }
 ];
 
 let gameQuestions = [];
@@ -75,63 +90,66 @@ let currentIdx = 0;
 let totalScore = 0;
 let currentPot = 10000;
 let timerInterval;
-
-// 入力状態を管理する配列（常に長さ2。初期値は ['0', '0']）
 let inputDigits = ['0', '0'];
-let isWaitingNext = false; 
 
-let highScore = localStorage.getItem('prime_high_score') || 0;
-document.getElementById('high-score').innerText = highScore;
+// ゲームの状態管理用フラグ
+let isGameStarted = false; // ゲーム自体が始まっているか（Pを押して開始したか）
+let isWaitingNext = false;  // 正解して次のPを待っているか
 
-function startGame() {
+function initGame() {
+    // 10問をランダムピックアップしてセット
     gameQuestions = [...questionBank].sort(() => 0.5 - Math.random()).slice(0, 10);
     currentIdx = 0;
     totalScore = 0;
-    document.getElementById('total-score').innerText = totalScore;
+    isGameStarted = false;
+    isWaitingNext = false;
+    inputDigits = ['0', '0'];
+    
+    // 表示の初期化
+    document.getElementById('q-num').innerText = "1";
+    const problemBox = document.getElementById('display-problem');
+    problemBox.innerText = "PRESS P";
+    problemBox.classList.add('ready');
+    updateInputDisplay();
+}
+
+function startFirstQuestion() {
+    isGameStarted = true;
     showQuestion();
 }
 
 function showQuestion() {
     if (currentIdx >= gameQuestions.length) {
         clearInterval(timerInterval);
-        if (totalScore > highScore) {
-            highScore = totalScore;
-            localStorage.setItem('prime_high_score', highScore);
-            document.getElementById('high-score').innerText = highScore;
-            alert(`ゲーム終了！新記録！ハイスコア: ${totalScore} 点！`);
-        } else {
-            alert(`ゲーム終了！あなたのスコアは ${totalScore} 点です。`);
-        }
+        showResult();
         return;
     }
     
     isWaitingNext = false;
     inputDigits = ['0', '0'];
     document.getElementById('q-num').innerText = currentIdx + 1;
-    document.getElementById('display-problem').innerText = gameQuestions[currentIdx].number;
-    document.getElementById('status-msg').innerText = "";
+    
+    const problemBox = document.getElementById('display-problem');
+    problemBox.innerText = gameQuestions[currentIdx].number;
+    problemBox.classList.remove('ready'); // 待機用スタイルを解除
     updateInputDisplay();
     
     currentPot = 10000;
-    document.getElementById('current-pot').innerText = currentPot;
-    
-    // タイマー開始（Pを押すまで止まらない）
     clearInterval(timerInterval);
     timerInterval = setInterval(() => {
         if (currentPot > 1000) {
-            currentPot -= 20; // 減速・スピード調整用
-            document.getElementById('current-pot').innerText = currentPot;
+            currentPot -= 25; 
         }
     }, 50);
 }
 
-// 画面の2マス表示を更新
 function updateInputDisplay() {
     document.getElementById('display-input').innerText = inputDigits.join('');
 }
 
 function pressNum(numStr) {
-    // コンマ入力直後に数字が押された場合、入力をリセットして「0+数字」にする
+    if (!isGameStarted) return; // 開始前は数字入力を受け付けない
+
     if (inputDigits[1] === ',') {
         inputDigits = ['0', numStr];
         updateInputDisplay();
@@ -140,19 +158,16 @@ function pressNum(numStr) {
     }
 
     if (isWaitingNext) {
-        // 正解後、相方の数字を打って進む処理
         inputDigits = [inputDigits[1], numStr];
         updateInputDisplay();
         const playerAns = parseInt(inputDigits.join(''));
-        const currentQ = gameQuestions[currentIdx];
-        if (currentQ.answers.includes(playerAns)) {
+        if (gameQuestions[currentIdx].answers.includes(playerAns)) {
             currentIdx++;
             showQuestion();
         }
         return;
     }
 
-    // 通常時：左にシフトして右端に新しい数字を入れる
     inputDigits = [inputDigits[1], numStr];
     updateInputDisplay();
     checkAnswer();
@@ -163,52 +178,71 @@ function checkAnswer() {
     const currentQ = gameQuestions[currentIdx];
     
     if (currentQ.answers.includes(playerAns)) {
-        // 正解！ただしタイマーは止めない（currentPotの減少は続く）
         totalScore += currentPot;
-        document.getElementById('total-score').innerText = totalScore;
-        
         const otherFactor = currentQ.number / playerAns;
         document.getElementById('display-problem').innerText = `${playerAns} × ${otherFactor}`;
-        document.getElementById('status-msg').innerText = "○ 正解！[P]で次へ";
         isWaitingNext = true;
     }
 }
 
 function pressBack() {
-    if (isWaitingNext) return;
-    // 右から消して、左に0を詰める
+    if (!isGameStarted || isWaitingNext) return;
     inputDigits = ['0', inputDigits[0]];
     updateInputDisplay();
 }
 
 function pressComma() {
-    if (isWaitingNext) return;
+    if (!isGameStarted || isWaitingNext) return;
 
-    // すでに右端が「,」の状態でさらにもう一回「,」を押したらパス（スキップ）
     if (inputDigits[1] === ',') {
-        // パス確定（この問題のスコア加算はなし）
         const currentQ = gameQuestions[currentIdx];
-        document.getElementById('display-problem').innerText = `正解: ${currentQ.answers.join(' or ')}`;
-        document.getElementById('status-msg').innerText = "パスしました。[P]で次へ";
+        document.getElementById('display-problem').innerText = `${currentQ.answers.join(' or ')}`;
         isWaitingNext = true;
         return;
     }
 
-    // 通常のコンマ入力：左にシフトして右端に「,」を入れる
     inputDigits = [inputDigits[1], ','];
     updateInputDisplay();
 }
 
 function pressP() {
+    if (!isGameStarted) {
+        // まだ始まっていないなら、P起動でゲーム開始！
+        startFirstQuestion();
+        return;
+    }
+
     if (isWaitingNext) {
-        // 正解またはパス後の状態なら、次の問題へ（ここでタイマーがリセットされる）
+        // 正解後またはパス後の次への遷移
         currentIdx++;
         showQuestion();
     }
 }
 
-// ゲーム起動
-startGame();
+function showResult() {
+    document.getElementById('game-view').style.display = "none";
+    document.getElementById('result-view').style.display = "flex";
+    
+    let highScore = localStorage.getItem('prime_high_score') || 0;
+    if (totalScore > highScore) {
+        highScore = totalScore;
+        localStorage.setItem('prime_high_score', highScore);
+    }
+    
+    document.getElementById('final-score').innerText = totalScore.toLocaleString() + "点";
+    document.getElementById('high-score-val').innerText = parseInt(highScore).toLocaleString() + "点";
+}
+
+function restartGame() {
+    // リザルト画面を閉じてゲーム画面を戻す
+    document.getElementById('result-view').style.display = "none";
+    document.getElementById('game-view').style.display = "flex";
+    // ゲームの再初期化（PRESS P状態へ）
+    initGame();
+}
+
+// 初回起動
+initGame();
 </script>
 </body>
 </html>
