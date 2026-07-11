@@ -98,7 +98,7 @@
             100% { transform: translateX(0); color: #000000; }
         }
         
-        /* 🚀 新・リザルト画面（完全中央揃え） */
+        /* リザルト画面 */
         .result-screen { 
             display: none; 
             position: fixed; 
@@ -110,35 +110,32 @@
             z-index: 10; 
             flex-direction: column; 
             align-items: center; 
-            justify-content: center; /* 縦方向も中央揃え */
+            justify-content: center; 
             padding: 20px; 
             text-align: center; 
         }
         
-        /* 全て項目を統一された綺麗なブロック状の巨大文字へ */
         .huge-display-box { 
             font-size: 2.6rem; 
             font-weight: 600; 
-            color: #000; 
+            color: #000000; 
             margin: 12px 0; 
             line-height: 1.2; 
         }
-        .huge-display-box span { 
+        .huge-display-box span.label { 
             font-size: 1.2rem; 
-            color: #666; 
+            color: #000000; 
             font-weight: 600; 
             display: block; 
             margin-bottom: 4px; 
             letter-spacing: 1px; 
         }
         
-        /* 更新テキスト */
-        .new-record-title { font-size: 2.2rem; font-weight: 600; color: #000; margin: 15px 0 5px 0; letter-spacing: 0.5px; }
+        .new-record-title { font-size: 2.2rem; font-weight: 600; color: #000000; margin: 15px 0 5px 0; letter-spacing: 0.5px; }
         
-        /* 推移用のレイアウト */
-        .record-transition { margin: 10px 0 15px 0; font-weight: 500; color: #333; display: flex; align-items: flex-end; justify-content: center; gap: 8px; }
+        .record-transition { margin: 10px 0 15px 0; font-weight: 500; color: #000000; display: flex; align-items: flex-end; justify-content: center; gap: 8px; }
         .old-score { font-size: 1.4rem; color: #666; padding-bottom: 3px; }
-        .new-score { font-size: 2.8rem; font-weight: 600; color: #000; }
+        .new-score { font-size: 2.8rem; font-weight: 600; color: #000000; }
     </style>
 </head>
 <body>
@@ -176,8 +173,8 @@
 </div>
 
 <div class="result-screen" id="result-view">
-    <div class="huge-display-box"><span>正解率</span><span id="result-accuracy">0%</span></div>
-    <div class="huge-display-box"><span>タイム</span><span id="result-time">00:00.00</span></div>
+    <div class="huge-display-box" id="result-accuracy">0%</div>
+    <div class="huge-display-box"><span class="label">タイム</span><span id="result-time">00:00.00</span></div>
     
     <div id="result-content-area" style="width: 100%;"></div>
     
@@ -206,6 +203,9 @@ let isGameStarted = false;
 let isWaitingNext = false;  
 let isSkipped = false; 
 let remainingFactor = null;
+
+// 🚀 現在の問題でミス（またはスキップ）が発生したかのフラグ
+let hasMissedCurrentQuestion = false;
 
 let startTime = 0;
 let endTime = 0;
@@ -266,6 +266,7 @@ function initGame() {
     inputDigits = ['0', '0'];
     pressCount = 0;
     remainingFactor = null;
+    hasMissedCurrentQuestion = false;
     
     document.getElementById('q-num').innerText = "1";
     document.getElementById('display-sub').innerText = "";
@@ -294,6 +295,7 @@ function showQuestion() {
     inputDigits = ['0', '0'];
     pressCount = 0;
     remainingFactor = null;
+    hasMissedCurrentQuestion = false; // 🚀 新しい問題なのでミスフラグをリセット
     document.getElementById('q-num').innerText = currentIdx + 1;
     
     problemBox.className = "problem-container";
@@ -373,10 +375,13 @@ function triggerPass() {
         return;
     }
 
+    // 🚀 スキップされたのでミス扱い（不正解フラグを立てる ＆ 赤エフェクトに変更）
+    hasMissedCurrentQuestion = true;
+    triggerWrongEffects();
+
     inputDigits = ['0', '0'];
     pressCount = 0;
     updateInputDisplay();
-    triggerCorrectEffects();
 
     const currentQ = gameQuestions[currentIdx];
     document.getElementById('display-sub').innerText = `${currentQ.number} =`;
@@ -409,6 +414,8 @@ function checkAnswerA() {
             pressCount = 0;
             updateInputDisplay(); 
         } else {
+            // 🚀 Aでミスしたためフラグを立てて赤エフェクト
+            hasMissedCurrentQuestion = true;
             triggerWrongEffects();
             inputDigits = ['0', '0'];
             pressCount = 0;
@@ -424,11 +431,16 @@ function checkAnswerB() {
         const playerAns = parseInt(inputDigits.join(''));
         
         if (playerAns === remainingFactor) {
-            correctCount++; 
+            // 🚀 AでもBでも一度もミスしていない場合のみ、完全正解としてカウント
+            if (!hasMissedCurrentQuestion) {
+                correctCount++;
+            }
             triggerCorrectEffects();
             currentIdx++;
             setTimeout(showQuestion, 80);
         } else {
+            // 🚀 Bでミスしたためフラグを立てて赤エフェクト
+            hasMissedCurrentQuestion = true;
             triggerWrongEffects();
             inputDigits = ['0', '0'];
             pressCount = 0;
@@ -479,7 +491,6 @@ function showResult() {
     const contentArea = document.getElementById('result-content-area');
     
     if (totalScore > oldHighScore) {
-        // 【更新時】 スコアに .toLocaleString() を通して3桁区切りを適用
         localStorage.setItem('prime_high_score', totalScore);
         contentArea.innerHTML = `
             <div class="new-record-title">ハイスコアを更新！</div>
@@ -489,10 +500,9 @@ function showResult() {
             </div>
         `;
     } else {
-        // 【通常時】 スコアに .toLocaleString() を通して3桁区切りを適用
         contentArea.innerHTML = `
-            <div class="huge-display-box"><span>スコア</span>${totalScore.toLocaleString()}</div>
-            <div class="huge-display-box" style="color: #666;"><span>ハイスコア</span>${oldHighScore.toLocaleString()}</div>
+            <div class="huge-display-box"><span class="label">スコア</span>${totalScore.toLocaleString()}</div>
+            <div class="huge-display-box"><span class="label">ハイスコア</span>${oldHighScore.toLocaleString()}</div>
         `;
     }
 }
