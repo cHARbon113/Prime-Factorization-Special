@@ -18,29 +18,29 @@
         .game-wrapper { width: 100%; max-width: 380px; padding: 20px; display: flex; flex-direction: column; height: 100vh; justify-content: space-between; }
         
         .header-area { margin-top: 15px; width: 100%; }
-        .progress { font-size: 1.1rem; text-align: right; color: #666; margin-bottom: 5px; }
+        .progress { font-size: 1.1rem; text-align: right; color: #666; margin-bottom: 5px; font-weight: 600; }
         
         /* お題コンテナ */
-        .problem-container { background: #ffffff; color: #000000; border: 2px solid #000; border-radius: 12px; padding: 25px 15px; text-align: center; min-height: 200px; display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%; }
+        .problem-container { background: #ffffff; color: #000000; border: 2.5px solid #000; border-radius: 12px; padding: 25px 15px; text-align: center; min-height: 200px; display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%; }
         
-        .sub-display { font-size: 1.4rem; color: #666666; min-height: 2rem; margin-bottom: 10px; letter-spacing: 1px; }
-        .main-display { font-size: 4.5rem; font-weight: normal; letter-spacing: 1px; line-height: 1.1; }
+        .sub-display { font-size: 1.4rem; color: #666666; min-height: 2rem; margin-bottom: 10px; letter-spacing: 1px; font-weight: 500; }
+        .main-display { font-size: 4.5rem; letter-spacing: 1px; line-height: 1.1; font-weight: 600; }
         
         .ready-mode .main-display { font-size: 2.2rem; }
         .skipped-mode .main-display { font-size: 3.2rem; }
         
         /* 入力欄 */
-        .input-box { font-size: 3.2rem; text-align: center; margin: 10px 0 15px 0; letter-spacing: 6px; border-bottom: 2px solid #ccc; padding-bottom: 3px; color: #000; transition: transform 0.1s ease; }
+        .input-box { font-size: 3.2rem; text-align: center; margin: 10px 0 15px 0; letter-spacing: 6px; border-bottom: 2.5px solid #ccc; padding-bottom: 3px; color: #000; transition: transform 0.1s ease; font-weight: 600; }
         
-        .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0px; width: 100%; border-top: 1px solid #000; border-left: 1px solid #000; }
+        .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0px; width: 100%; border-top: 1.5px solid #000; border-left: 1.5px solid #000; }
         
-        .btn { background: #ffffff; color: #000000; border: 1px solid #000000; padding: 22px 0; font-size: 1.8rem; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 100%; outline: none; }
+        .btn { background: #ffffff; color: #000000; border: 1.5px solid #000000; padding: 22px 0; font-size: 1.8rem; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 100%; outline: none; font-weight: 600; }
         .btn-action { background: #dcdcdc; color: #000000; }
         
         .btn:active { background: #000000; color: #ffffff; }
         .btn-action:active { background: #888888; color: #ffffff; }
         
-        /* 🚀 演出用アニメーション群 */
+        /* アニメーション群 */
         .pop-anime { animation: pop 0.12s ease-out; }
         @keyframes pop {
             0% { transform: scale(0.96); }
@@ -48,25 +48,35 @@
             100% { transform: scale(1.0); }
         }
         
-        /* 正解時のお題箱バウンド */
         .correct-anime { animation: correct-bounce 0.25s ease-out; }
         @keyframes correct-bounce {
             0% { transform: scale(1.0); }
-            40% { transform: scale(1.04); box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-            100% { transform: scale(1.0); box-shadow: 0 0px 0px rgba(0,0,0,0); }
+            40% { transform: scale(1.04); }
+            100% { transform: scale(1.0); }
         }
         
-        /* 正解時の入力欄フラッシュ */
         .flash-anime { animation: input-flash 0.15s ease-out; }
         @keyframes input-flash {
             0% { opacity: 0.3; transform: scale(0.95); color: #00dd00; }
             100% { opacity: 1; transform: scale(1.0); color: #000000; }
         }
         
-        /* リザルト画面 */
+        /* 🚀 リザルト表示用スタイル */
         .result-screen { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #ffffff; z-index: 10; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center; }
-        .score-display { font-size: 1.6rem; margin: 15px 0; color: #333; }
-        .score-val { font-size: 3rem; display: block; margin-top: 10px; font-weight: bold; color: #000; }
+        
+        .accuracy-display { font-size: 3.5rem; font-weight: 600; color: #000; margin-bottom: 20px; }
+        
+        /* スコア行の共通設定 */
+        .result-row { font-size: 1.4rem; margin: 10px 0; color: #333; font-weight: 500; }
+        .result-row span { font-weight: 600; color: #000; }
+        
+        /* 新記録達成時のテキスト */
+        .new-record-title { font-size: 1.8rem; font-weight: 600; color: #000; margin-bottom: 20px; letter-spacing: 1px; }
+        
+        /* 新記録推移（〜→〜）のレイアウト */
+        .record-transition { margin: 25px 0; font-weight: 500; color: #333; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .old-score { font-size: 1.3rem; color: #666; }
+        .new-score { font-size: 2.6rem; font-weight: 600; color: #000; }
     </style>
 </head>
 <body>
@@ -104,8 +114,10 @@
 </div>
 
 <div class="result-screen" id="result-view">
-    <div class="score-display">YOUR SCORE<span class="score-val" id="final-score">0</span></div>
-    <div class="score-display" style="color: #666;">HIGH SCORE<span class="score-val" id="high-score-val" style="font-size: 2.2rem; color: #666;">0</span></div>
+    <div class="accuracy-display" id="result-accuracy">0%</div>
+    
+    <div id="result-content-area" style="width: 100%;"></div>
+    
     <button class="btn" style="width: 200px; margin-top: 40px; border: 2px solid #000; border-radius: 8px;" id="btn-restart">RETRY</button>
 </div>
 
@@ -121,6 +133,7 @@ const questionBank = [
 let gameQuestions = [];
 let currentIdx = 0;
 let totalScore = 0;
+let correctCount = 0; // 正解数をカウントする変数を追加
 let currentPot = 10000;
 let timerInterval;
 let inputDigits = ['0', '0'];
@@ -161,7 +174,6 @@ keyboard.addEventListener('animationend', function(e) {
     }
 });
 
-// アニメーションクラスを自動でクリーンアップする仕掛け
 problemBox.addEventListener('animationend', () => problemBox.classList.remove('correct-anime'));
 inputDisplay.addEventListener('animationend', () => inputDisplay.classList.remove('flash-anime'));
 
@@ -178,6 +190,7 @@ function initGame() {
     gameQuestions = [...questionBank].sort(() => 0.5 - Math.random()).slice(0, 10);
     currentIdx = 0;
     totalScore = 0;
+    correctCount = 0;
     isGameStarted = false;
     isWaitingNext = false;
     isSkipped = false;
@@ -233,14 +246,11 @@ function updateInputDisplay() {
     inputDisplay.innerText = inputDigits.join('');
 }
 
-// 🚀 正解演出を発火させる関数
 function triggerCorrectEffects() {
-    // お題箱のアニメーション適用
     problemBox.classList.remove('correct-anime');
     void problemBox.offsetWidth;
     problemBox.classList.add('correct-anime');
 
-    // 入力エリアのアニメーション適用
     inputDisplay.classList.remove('flash-anime');
     void inputDisplay.offsetWidth;
     inputDisplay.classList.add('flash-anime');
@@ -289,7 +299,7 @@ function triggerPass() {
     inputDigits = ['0', '0'];
     pressCount = 0;
     updateInputDisplay();
-    triggerCorrectEffects(); // パス時も演出を入れる
+    triggerCorrectEffects();
 
     const currentQ = gameQuestions[currentIdx];
     document.getElementById('display-sub').innerText = `${currentQ.number} =`;
@@ -315,7 +325,7 @@ function checkAnswerA() {
             
             problemBox.className = "problem-container";
             
-            triggerCorrectEffects(); // 🚀 正解エフェクトON！
+            triggerCorrectEffects();
             isWaitingNext = true;
         }
         
@@ -332,9 +342,9 @@ function checkAnswerB() {
         const playerAns = parseInt(inputDigits.join(''));
         
         if (playerAns === remainingFactor) {
-            triggerCorrectEffects(); // 🚀 2つ目正解時もON！
+            correctCount++; // 両方の素因数を正解した時点でカウントアップ
+            triggerCorrectEffects();
             currentIdx++;
-            // アニメーションの余韻を少しだけ感じさせてから次へ（違和感があれば即時でもOK）
             setTimeout(showQuestion, 80);
         } else {
             inputDigits = ['0', '0'];
@@ -364,18 +374,36 @@ function pressP() {
     }
 }
 
+// 🚀 動的リザルト生成関数
 function showResult() {
     document.getElementById('game-view').style.display = "none";
     document.getElementById('result-view').style.display = "flex";
     
-    let highScore = localStorage.getItem('prime_high_score') || 0;
-    if (totalScore > highScore) {
-        highScore = totalScore;
-        localStorage.setItem('prime_high_score', highScore);
-    }
+    // 正解率（10%刻み）の計算
+    const accuracy = (correctCount / gameQuestions.length) * 100;
+    document.getElementById('result-accuracy').innerText = `${accuracy}%`;
     
-    document.getElementById('final-score').innerText = totalScore.toLocaleString() + " PTS";
-    document.getElementById('high-score-val').innerText = parseInt(highScore).toLocaleString() + " PTS";
+    const oldHighScore = parseInt(localStorage.getItem('prime_high_score') || 0);
+    const contentArea = document.getElementById('result-content-area');
+    
+    if (totalScore > oldHighScore) {
+        // 【パターン1】 ハイスコア更新時
+        localStorage.setItem('prime_high_score', totalScore);
+        
+        contentArea.innerHTML = `
+            <div class="new-record-title">ハイスコアを更新！</div>
+            <div class="record-transition">
+                <span class="old-score">${oldHighScore.toLocaleString()} →</span>
+                <span class="new-score">${totalScore.toLocaleString()}</span>
+            </div>
+        `;
+    } else {
+        // 【パターン2】 通常時
+        contentArea.innerHTML = `
+            <div class="result-row">スコア：<span>${totalScore.toLocaleString()}</span></div>
+            <div class="result-row" style="color: #666;">ハイスコア：<span>${oldHighScore.toLocaleString()}</span></div>
+        `;
+    }
 }
 
 function restartGame() {
