@@ -9,23 +9,25 @@
         body { margin: 0; padding: 0; background: #ffffff; color: #000000; display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; }
         
         .game-wrapper { width: 100%; max-width: 380px; padding: 20px; display: flex; flex-direction: column; height: 100vh; justify-content: space-between; }
-        .progress { font-size: 1.2rem; font-weight: bold; text-align: left; margin-bottom: 10px; color: #666; }
         
-        .problem-box { border: 2px solid #000; border-radius: 8px; text-align: center; font-size: 3.2rem; font-weight: 900; letter-spacing: 2px; line-height: 1.2; height: 140px; display: flex; align-items: center; justify-content: center; width: 100%; }
+        /* お題の上に少し余白を確保 */
+        .progress { font-size: 1.2rem; font-weight: bold; text-align: left; margin-top: 20px; margin-bottom: 10px; color: #666; }
+        
+        /* お題の枠線を太くしてさらに目立たせる */
+        .problem-box { border: 3px solid #000; border-radius: 8px; text-align: center; font-size: 3.5rem; font-weight: 900; letter-spacing: 2px; line-height: 1.2; height: 140px; display: flex; align-items: center; justify-content: center; width: 100%; }
         .problem-box.ready { font-size: 2.2rem; letter-spacing: 1px; color: #666; }
         
-        .input-box { font-size: 3.5rem; font-weight: bold; text-align: center; margin: 20px 0; letter-spacing: 6px; border-bottom: 2px solid #ccc; padding-bottom: 5px; }
+        /* お題と入力欄の間の空白を無くす */
+        .input-box { font-size: 3.5rem; font-weight: bold; text-align: center; margin: 5px 0 20px 0; letter-spacing: 6px; border-bottom: 2px solid #ccc; padding-bottom: 5px; }
         
-        /* テンキーエリア：3列構成、隙間を0に */
         .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0px; width: 100%; border-top: 1px solid #000; border-left: 1px solid #000; }
         
-        /* ボタン：隙間がないため、外枠同士が重なるようにborderを調整して大きく見せる */
         .btn { background: #ffffff; color: #000000; border: 1px solid #000000; padding: 22px 0; font-size: 1.8rem; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; user-select: none; width: 100%; }
         .btn:active { background: #000000; color: #ffffff; }
         
-        /* 上段アクションキー用の白黒反転デザイン */
-        .btn-action { background: #000000; color: #ffffff; }
-        .btn-action:active { background: #ffffff; color: #000000; }
+        /* 最上段アクションキー用のグレーデザイン（枠線が見える） */
+        .btn-action { background: #dcdcdc; color: #000000; }
+        .btn-action:active { background: #aaaaaa; }
         
         .result-screen { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #ffffff; z-index: 10; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center; }
         .result-title { font-size: 2.5rem; font-weight: 900; margin-bottom: 30px; }
@@ -86,6 +88,7 @@ let totalScore = 0;
 let currentPot = 10000;
 let timerInterval;
 let inputDigits = ['0', '0'];
+let pressCount = 0; // 入力された回数を正確にカウントする変数
 
 let isGameStarted = false; 
 let isWaitingNext = false;  
@@ -98,6 +101,7 @@ function initGame() {
     isGameStarted = false;
     isWaitingNext = false;
     inputDigits = ['0', '0'];
+    pressCount = 0;
     correctAnsThisQuestion = null;
     
     document.getElementById('q-num').innerText = "1";
@@ -122,6 +126,7 @@ function showQuestion() {
     
     isWaitingNext = false;
     inputDigits = ['0', '0'];
+    pressCount = 0;
     correctAnsThisQuestion = null;
     document.getElementById('q-num').innerText = currentIdx + 1;
     
@@ -148,12 +153,16 @@ function pressNum(numStr) {
     if (!isGameStarted) return;
 
     inputDigits = [inputDigits[1], numStr];
+    pressCount++;
     updateInputDisplay();
 
-    if (isWaitingNext) {
-        checkAnswerB();
-    } else {
-        checkAnswerA();
+    // 2回キーが押されたら判定ロジックへ
+    if (pressCount >= 2) {
+        if (isWaitingNext) {
+            checkAnswerB();
+        } else {
+            checkAnswerA();
+        }
     }
 }
 
@@ -166,6 +175,7 @@ function pressComma() {
     }
 
     inputDigits = [inputDigits[1], ','];
+    pressCount++;
     updateInputDisplay();
 
     if (inputDigits[0] === ',' && inputDigits[1] === ',') {
@@ -175,6 +185,7 @@ function pressComma() {
 
 function triggerPass() {
     inputDigits = ['0', '0'];
+    pressCount = 0;
     updateInputDisplay();
 
     const currentQ = gameQuestions[currentIdx];
@@ -204,6 +215,7 @@ function checkAnswerA() {
         }
         
         inputDigits = ['0', '0'];
+        pressCount = 0;
         setTimeout(updateInputDisplay, 100); 
     }
 }
@@ -219,6 +231,7 @@ function checkAnswerB() {
             showQuestion();
         } else {
             inputDigits = ['0', '0'];
+            pressCount = 0;
             setTimeout(updateInputDisplay, 100);
         }
     }
@@ -227,6 +240,7 @@ function checkAnswerB() {
 function pressBack() {
     if (!isGameStarted) return;
     inputDigits = ['0', inputDigits[0]];
+    if (pressCount > 0) pressCount--; // カウントを戻す
     updateInputDisplay();
 }
 
@@ -242,6 +256,7 @@ function pressP() {
     }
 }
 
+// ハイスコア画面表示
 function showResult() {
     document.getElementById('game-view').style.display = "none";
     document.getElementById('result-view').style.display = "flex";
