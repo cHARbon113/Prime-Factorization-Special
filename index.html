@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>素因数分解・特級 (テンキー版)</title>
+    <style>
+        body { font-family: monospace; text-align: center; background: #1a1a1a; color: #fff; margin-top: 50px; }
+        
+        /* 全体の横幅を320pxに統一 */
+        .game-container { width: 320px; margin: 0 auto; padding: 20px; background: #2a2a2a; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.5); box-sizing: border-box; }
+        .display-area { width: 100%; background: #000; padding: 15px; border-radius: 10px; margin-bottom: 20px; min-height: 120px; display: flex; flex-direction: column; justify-content: center; box-sizing: border-box; border: 2px solid #444; }
+        .keypad { width: 100%; display: grid; grid-template-columns: repeat(3, 1fr) 70px; gap: 10px; box-sizing: border-box; }
+        
+        .problem { font-size: 2.2rem; font-weight: bold; color: #0f0; word-break: break-all; }
+        .input-view { font-size: 2.5rem; color: #fff; margin-top: 10px; min-height: 3rem; letter-spacing: 4px; font-weight: bold; }
+        .status-msg { font-size: 1rem; color: #ffeb3b; min-height: 1.2rem; margin-top: 5px; }
+        
+        .btn { background: #3a3a3a; color: #fff; border: none; padding: 15px 0; font-size: 1.5rem; border-radius: 8px; cursor: pointer; user-select: none; }
+        .btn:active { background: #555; }
+        .btn-p { background: #ff9800; }
+        .btn-p:active { background: #e68a00; }
+        .btn-back { background: #e53935; }
+        .btn-back:active { background: #c62828; }
+        .btn-comma { background: #5c6bc0; }
+        .btn-comma:active { background: #3f51b5; }
+        
+        .info { font-size: 0.85rem; margin-bottom: 15px; color: #ccc; text-align: left; line-height: 1.4; }
+    </style>
+</head>
+<body>
+
+<div class="game-container">
+    <h2>素因数分解・特級</h2>
+    <div class="info">
+        問: <span id="q-num">1</span>/10 | スコア: <span id="total-score">0</span><br>
+        ハイスコア: <span id="high-score">0</span><br>
+        現在の価値: <span id="current-pot">10000</span> 点
+    </div>
+    
+    <div class="display-area">
+        <div class="problem" id="display-problem">----</div>
+        <div class="input-view" id="display-input">00</div>
+        <div class="status-msg" id="status-msg"></div>
+    </div>
+
+    <div class="keypad">
+        <button class="btn" onclick="pressNum('7')">7</button>
+        <button class="btn" onclick="pressNum('8')">8</button>
+        <button class="btn" onclick="pressNum('9')">9</button>
+        <button class="btn btn-p" onclick="pressP()">P</button>
+
+        <button class="btn" onclick="pressNum('4')">4</button>
+        <button class="btn" onclick="pressNum('5')">5</button>
+        <button class="btn" onclick="pressNum('6')">6</button>
+        <button class="btn btn-back" onclick="pressBack()">◀︎</button>
+
+        <button class="btn" onclick="pressNum('1')">1</button>
+        <button class="btn" onclick="pressNum('2')">2</button>
+        <button class="btn" onclick="pressNum('3')">3</button>
+        <button class="btn btn-comma" onclick="pressComma()">,</button>
+    </div>
+</div>
+
+<script>
+// ダミーの問題データ
+const questionBank = [
+    { number: 1769, answers: [29, 61] },
+    { number: 1457, answers: [31, 47] },
+    { number: 2491, answers: [47, 53] },
+    { number: 4087, answers: [61, 67] }
+];
+
+let gameQuestions = [];
+let currentIdx = 0;
+let totalScore = 0;
+let currentPot = 10000;
+let timerInterval;
+
+// 入力状態を管理する配列（常に長さ2。初期値は ['0', '0']）
+let inputDigits = ['0', '0'];
+let isWaitingNext = false; 
+
+let highScore = localStorage.getItem('prime_high_score') || 0;
+document.getElementById('high-score').innerText = highScore;
+
+function startGame() {
+    gameQuestions = [...questionBank].sort(() => 0.5 - Math.random()).slice(0, 10);
+    currentIdx = 0;
+    totalScore = 0;
+    document.getElementById('total-score').innerText = totalScore;
+    showQuestion();
+}
+
+function showQuestion() {
+    if (currentIdx >= gameQuestions.length) {
+        clearInterval(timerInterval);
+        if (totalScore > highScore) {
+            highScore = totalScore;
+            localStorage.setItem('prime_high_score', highScore);
+            document.getElementById('high-score').innerText = highScore;
+            alert(`ゲーム終了！新記録！ハイスコア: ${totalScore} 点！`);
+        } else {
+            alert(`ゲーム終了！あなたのスコアは ${totalScore} 点です。`);
+        }
+        return;
+    }
+    
+    isWaitingNext = false;
+    inputDigits = ['0', '0'];
+    document.getElementById('q-num').innerText = currentIdx + 1;
+    document.getElementById('display-problem').innerText = gameQuestions[currentIdx].number;
+    document.getElementById('status-msg').innerText = "";
+    updateInputDisplay();
+    
+    currentPot = 10000;
+    document.getElementById('current-pot').innerText = currentPot;
+    
+    // タイマー開始（Pを押すまで止まらない）
+    clearInterval(timerInterval);
+    timerInterval = setInterval(() => {
+        if (currentPot > 1000) {
+            currentPot -= 20; // 減速・スピード調整用
+            document.getElementById('current-pot').innerText = currentPot;
+        }
+    }, 50);
+}
+
+// 画面の2マス表示を更新
+function updateInputDisplay() {
+    document.getElementById('display-input').innerText = inputDigits.join('');
+}
+
+function pressNum(numStr) {
+    // コンマ入力直後に数字が押された場合、入力をリセットして「0+数字」にする
+    if (inputDigits[1] === ',') {
+        inputDigits = ['0', numStr];
+        updateInputDisplay();
+        if (!isWaitingNext) checkAnswer();
+        return;
+    }
+
+    if (isWaitingNext) {
+        // 正解後、相方の数字を打って進む処理
+        inputDigits = [inputDigits[1], numStr];
+        updateInputDisplay();
+        const playerAns = parseInt(inputDigits.join(''));
+        const currentQ = gameQuestions[currentIdx];
+        if (currentQ.answers.includes(playerAns)) {
+            currentIdx++;
+            showQuestion();
+        }
+        return;
+    }
+
+    // 通常時：左にシフトして右端に新しい数字を入れる
+    inputDigits = [inputDigits[1], numStr];
+    updateInputDisplay();
+    checkAnswer();
+}
+
+function checkAnswer() {
+    const playerAns = parseInt(inputDigits.join(''));
+    const currentQ = gameQuestions[currentIdx];
+    
+    if (currentQ.answers.includes(playerAns)) {
+        // 正解！ただしタイマーは止めない（currentPotの減少は続く）
+        totalScore += currentPot;
+        document.getElementById('total-score').innerText = totalScore;
+        
+        const otherFactor = currentQ.number / playerAns;
+        document.getElementById('display-problem').innerText = `${playerAns} × ${otherFactor}`;
+        document.getElementById('status-msg').innerText = "○ 正解！[P]で次へ";
+        isWaitingNext = true;
+    }
+}
+
+function pressBack() {
+    if (isWaitingNext) return;
+    // 右から消して、左に0を詰める
+    inputDigits = ['0', inputDigits[0]];
+    updateInputDisplay();
+}
+
+function pressComma() {
+    if (isWaitingNext) return;
+
+    // すでに右端が「,」の状態でさらにもう一回「,」を押したらパス（スキップ）
+    if (inputDigits[1] === ',') {
+        // パス確定（この問題のスコア加算はなし）
+        const currentQ = gameQuestions[currentIdx];
+        document.getElementById('display-problem').innerText = `正解: ${currentQ.answers.join(' or ')}`;
+        document.getElementById('status-msg').innerText = "パスしました。[P]で次へ";
+        isWaitingNext = true;
+        return;
+    }
+
+    // 通常のコンマ入力：左にシフトして右端に「,」を入れる
+    inputDigits = [inputDigits[1], ','];
+    updateInputDisplay();
+}
+
+function pressP() {
+    if (isWaitingNext) {
+        // 正解またはパス後の状態なら、次の問題へ（ここでタイマーがリセットされる）
+        currentIdx++;
+        showQuestion();
+    }
+}
+
+// ゲーム起動
+startGame();
+</script>
+</body>
+</html>
