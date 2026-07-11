@@ -28,6 +28,7 @@
         .ready-mode .main-display { font-size: 2.2rem; }
         .skipped-mode .main-display { font-size: 3.2rem; }
         
+        /* 入力欄 */
         .input-box { font-size: 3.2rem; text-align: center; margin: 10px 0 15px 0; letter-spacing: 6px; border-bottom: 2.5px solid #ccc; padding-bottom: 3px; color: #000; font-weight: 600; }
         
         .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0px; width: 100%; border-top: 1.5px solid #000; border-left: 1.5px solid #000; }
@@ -53,27 +54,31 @@
             100% { transform: scale(1.0); }
         }
         
+        /* 正解時の緑フラッシュ */
         .flash-anime { animation: input-flash 0.15s ease-out; }
         @keyframes input-flash {
             0% { opacity: 0.3; transform: scale(0.95); color: #00dd00; }
             100% { opacity: 1; transform: scale(1.0); color: #000000; }
         }
         
-        /* 🚀 新・リザルト用スタイル */
-        .result-screen { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #ffffff; z-index: 10; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center; }
+        /* 🚀 【新規】不正解時の赤フラッシュ＆シェイク（横揺れ） */
+        .wrong-anime { animation: wrong-shake 0.2s ease-in-out; }
+        @keyframes wrong-shake {
+            0% { transform: translateX(0); color: #ff0000; }
+            20% { transform: translateX(-8px); }
+            40% { transform: translateX(6px); }
+            60% { transform: translateX(-6px); }
+            80% { transform: translateX(4px); }
+            100% { transform: translateX(0); color: #000000; }
+        }
         
-        /* % と タイム のスタイル（サイズを揃えてスマートに） */
+        /* リザルト用スタイル */
+        .result-screen { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #ffffff; z-index: 10; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center; }
         .accuracy-display { font-size: 2.0rem; font-weight: 600; color: #000; margin-bottom: 5px; }
         .time-display { font-size: 1.8rem; font-weight: 600; color: #444; margin-bottom: 25px; }
-        
-        /* 「ハイスコアを更新！」の文字サイズ設定 */
         .new-record-title { font-size: 2.0rem; font-weight: 600; color: #000; margin-bottom: 15px; letter-spacing: 0.5px; }
-        
-        /* スコアを目立当てるための巨大フォント共通化 (2.6rem) */
         .huge-score-box { font-size: 2.6rem; font-weight: 600; color: #000; margin: 12px 0; line-height: 1.2; }
         .huge-score-box span { font-size: 1.2rem; color: #666; font-weight: 500; display: block; margin-bottom: 2px; }
-        
-        /* 新記録推移（〜→〜）の横並びレイアウト */
         .record-transition { margin: 20px 0; font-weight: 500; color: #333; display: flex; align-items: flex-end; justify-content: center; gap: 8px; }
         .old-score { font-size: 1.3rem; color: #666; padding-bottom: 3px; }
         .new-score { font-size: 2.6rem; font-weight: 600; color: #000; }
@@ -116,9 +121,7 @@
 <div class="result-screen" id="result-view">
     <div class="accuracy-display" id="result-accuracy">0%</div>
     <div class="time-display" id="result-time">00:00.00</div>
-    
     <div id="result-content-area" style="width: 100%;"></div>
-    
     <button class="btn" style="width: 200px; margin-top: 40px; border: 2px solid #000; border-radius: 8px;" id="btn-restart">RETRY</button>
 </div>
 
@@ -145,7 +148,6 @@ let isWaitingNext = false;
 let isSkipped = false; 
 let remainingFactor = null;
 
-// タイム計測用変数
 let startTime = 0;
 let endTime = 0;
 
@@ -179,8 +181,12 @@ keyboard.addEventListener('animationend', function(e) {
     }
 });
 
+// クリーニング対象に wrong-anime も追加
 problemBox.addEventListener('animationend', () => problemBox.classList.remove('correct-anime'));
-inputDisplay.addEventListener('animationend', () => inputDisplay.classList.remove('flash-anime'));
+inputDisplay.addEventListener('animationend', () => {
+    inputDisplay.classList.remove('flash-anime');
+    inputDisplay.classList.remove('wrong-anime');
+});
 
 document.getElementById('btn-restart').addEventListener(startEvent, function(e) {
     e.preventDefault();
@@ -213,13 +219,13 @@ function initGame() {
 
 function startFirstQuestion() {
     isGameStarted = true;
-    startTime = performance.now(); // ゲーム開始時間をミリ秒で記録
+    startTime = performance.now();
     showQuestion();
 }
 
 function showQuestion() {
     if (currentIdx >= gameQuestions.length) {
-        endTime = performance.now(); // ゲームクリア時間を記録
+        endTime = performance.now();
         clearInterval(timerInterval);
         showResult();
         return;
@@ -258,9 +264,16 @@ function triggerCorrectEffects() {
     void problemBox.offsetWidth;
     problemBox.classList.add('correct-anime');
 
-    inputDisplay.classList.remove('flash-anime');
+    inputDisplay.classList.remove('flash-anime', 'wrong-anime');
     void inputDisplay.offsetWidth;
     inputDisplay.classList.add('flash-anime');
+}
+
+// 🚀 【新規】間違えた時の赤いフラッシュ＆シェイク演出を発火
+function triggerWrongEffects() {
+    inputDisplay.classList.remove('flash-anime', 'wrong-anime');
+    void inputDisplay.offsetWidth; // リフロー
+    inputDisplay.classList.add('wrong-anime');
 }
 
 function pressNum(numStr) {
@@ -334,11 +347,17 @@ function checkAnswerA() {
             
             triggerCorrectEffects();
             isWaitingNext = true;
+            
+            inputDigits = ['0', '0'];
+            pressCount = 0;
+            updateInputDisplay(); 
+        } else {
+            // 🚀 不正解時の処理：演出を出し、入力をリセット
+            triggerWrongEffects();
+            inputDigits = ['0', '0'];
+            pressCount = 0;
+            updateInputDisplay();
         }
-        
-        inputDigits = ['0', '0'];
-        pressCount = 0;
-        updateInputDisplay(); 
     }
 }
 
@@ -354,6 +373,8 @@ function checkAnswerB() {
             currentIdx++;
             setTimeout(showQuestion, 80);
         } else {
+            // 🚀 不正解時の処理：演出を出し、入力をリセット
+            triggerWrongEffects();
             inputDigits = ['0', '0'];
             pressCount = 0;
             updateInputDisplay();
@@ -381,18 +402,12 @@ function pressP() {
     }
 }
 
-// 🚀 クリアタイムのフォーマット化用関数
 function formatClearTime(ms) {
     const totalSeconds = ms / 1000;
     const minutes = Math.floor(totalSeconds / 60);
     const seconds = Math.floor(totalSeconds % 60);
     const milliseconds = Math.floor((ms % 1000) / 10);
-    
-    const strMin = String(minutes).padStart(2, '0');
-    const strSec = String(seconds).padStart(2, '0');
-    const strMs = String(milliseconds).padStart(2, '0');
-    
-    return `${strMin}:${strSec}.${strMs}`;
+    return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}.${String(milliseconds).padStart(2, '0')}`;
 }
 
 function showResult() {
@@ -402,7 +417,6 @@ function showResult() {
     const accuracy = (correctCount / gameQuestions.length) * 100;
     document.getElementById('result-accuracy').innerText = `${accuracy}%`;
     
-    // クリアタイムを算出して表示
     const clearTimeMs = endTime - startTime;
     document.getElementById('result-time').innerText = formatClearTime(clearTimeMs);
     
@@ -410,9 +424,7 @@ function showResult() {
     const contentArea = document.getElementById('result-content-area');
     
     if (totalScore > oldHighScore) {
-        // 【ハイスコア更新時】
         localStorage.setItem('prime_high_score', totalScore);
-        
         contentArea.innerHTML = `
             <div class="new-record-title">ハイスコアを更新！</div>
             <div class="record-transition">
@@ -421,7 +433,6 @@ function showResult() {
             </div>
         `;
     } else {
-        // 【通常時】 スコア・ハイスコア両方を巨大表示 (2.6rem) へ昇格
         contentArea.innerHTML = `
             <div class="huge-score-box"><span>SCORE</span>${totalScore.toLocaleString()}</div>
             <div class="huge-score-box" style="color: #666;"><span>HIGH SCORE</span>${oldHighScore.toLocaleString()}</div>
