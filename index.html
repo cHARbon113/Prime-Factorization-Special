@@ -9,10 +9,13 @@
         body { margin: 0; padding: 0; background: #ffffff; color: #000000; display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; }
         
         .game-wrapper { width: 100%; max-width: 380px; padding: 20px; display: flex; flex-direction: column; height: 100vh; justify-content: space-between; }
-        .progress { font-size: 1.2rem; font-weight: bold; text-align: left; margin-bottom: 5px; color: #666; }
-        .problem-box { border: 2px solid #000; padding: 25px 10px; border-radius: 8px; text-align: center; font-size: 3rem; font-weight: 900; letter-spacing: 2px; line-height: 1.2; min-height: 110px; display: flex; align-items: center; justify-content: center; }
+        .progress { font-size: 1.2rem; font-weight: bold; text-align: left; margin-bottom: 10px; color: #666; }
+        
+        /* お題表示エリア：高さを少し広げ、完全に中央へ固定 */
+        .problem-box { border: 2px solid #000; border-radius: 8px; text-align: center; font-size: 3.2rem; font-weight: 900; letter-spacing: 2px; line-height: 1.2; height: 140px; display: flex; align-items: center; justify-content: center; width: 100%; }
         .problem-box.ready { font-size: 2.2rem; letter-spacing: 1px; color: #666; }
-        .input-box { font-size: 3.5rem; font-weight: bold; text-align: center; margin: 15px 0; letter-spacing: 6px; border-bottom: 2px solid #ccc; padding-bottom: 5px; }
+        
+        .input-box { font-size: 3.5rem; font-weight: bold; text-align: center; margin: 20px 0; letter-spacing: 6px; border-bottom: 2px solid #ccc; padding-bottom: 5px; }
         .keypad { display: grid; grid-template-columns: repeat(3, 1fr) 75px; gap: 12px; margin-bottom: 10px; }
         .btn { background: #ffffff; color: #000000; border: 2px solid #000000; padding: 18px 0; font-size: 1.6rem; font-weight: bold; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; user-select: none; }
         .btn:active { background: #000000; color: #ffffff; }
@@ -140,11 +143,9 @@ function updateInputDisplay() {
 function pressNum(numStr) {
     if (!isGameStarted) return;
 
-    // 完全に右詰めシフト（コンマだろうが何だろうが左へズレる）
     inputDigits = [inputDigits[1], numStr];
     updateInputDisplay();
 
-    // 新しい入力状態に基づいて判定へ
     if (isWaitingNext) {
         checkAnswerB();
     } else {
@@ -155,43 +156,35 @@ function pressNum(numStr) {
 function pressComma() {
     if (!isGameStarted) return;
 
-    // すでに右詰めシフトして「,,」になったらパス発動
     if (inputDigits[1] === ',') {
         triggerPass();
         return;
     }
 
-    // 通常のコンマ：他の数字と同様に右詰めシフト
     inputDigits = [inputDigits[1], ','];
     updateInputDisplay();
 
-    // もしシフトした結果「,,」になっていればパス発動
     if (inputDigits[0] === ',' && inputDigits[1] === ',') {
         triggerPass();
     }
 }
 
-// パス（スキップ）処理の共通化
 function triggerPass() {
-    inputDigits = ['0', '0']; // パス成立時に入力欄リセット
+    inputDigits = ['0', '0'];
     updateInputDisplay();
 
     const currentQ = gameQuestions[currentIdx];
     if (!isWaitingNext) {
-        // 【状態Aからのパス】その問題は0点、〜×〜で表示して状態Bへ
         document.getElementById('display-problem').innerText = `${currentQ.p} × ${currentQ.q}`;
         document.getElementById('display-problem').style.color = "#666";
         isWaitingNext = true;
     } else {
-        // 【状態Bからのパス】次の問題に進む、その問題は0点
         currentIdx++;
         showQuestion();
     }
 }
 
-// 【状態A】での数字入力チェック（2桁になったら即判定）
 function checkAnswerA() {
-    // 両方とも数字である（コンマを含まない）場合のみ判定
     if (inputDigits[0] !== ',' && inputDigits[1] !== ',') {
         const playerAns = parseInt(inputDigits.join(''));
         const currentQ = gameQuestions[currentIdx];
@@ -206,13 +199,11 @@ function checkAnswerA() {
             isWaitingNext = true;
         }
         
-        // 判定されたら（正解・不正解問わず）入力欄はリセット
         inputDigits = ['0', '0'];
         setTimeout(updateInputDisplay, 100); 
     }
 }
 
-// 【状態B】での数字入力チェック
 function checkAnswerB() {
     if (inputDigits[0] !== ',' && inputDigits[1] !== ',') {
         const playerAns = parseInt(inputDigits.join(''));
@@ -231,7 +222,6 @@ function checkAnswerB() {
 
 function pressBack() {
     if (!isGameStarted) return;
-    // 右詰めシフトの逆（左から0を詰めて右側へシフト）
     inputDigits = ['0', inputDigits[0]];
     updateInputDisplay();
 }
