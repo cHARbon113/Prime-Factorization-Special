@@ -9,20 +9,13 @@
         body { margin: 0; padding: 0; background: #ffffff; color: #000000; display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; }
         
         .game-wrapper { width: 100%; max-width: 380px; padding: 20px; display: flex; flex-direction: column; height: 100vh; justify-content: space-between; }
-        
         .progress { font-size: 1.2rem; font-weight: bold; text-align: left; margin-bottom: 5px; color: #666; }
-        
         .problem-box { border: 2px solid #000; padding: 25px 10px; border-radius: 8px; text-align: center; font-size: 3rem; font-weight: 900; letter-spacing: 2px; line-height: 1.2; min-height: 110px; display: flex; align-items: center; justify-content: center; }
-        /* スタート待機時用の少し小さめフォントサイズ設定 */
         .problem-box.ready { font-size: 2.2rem; letter-spacing: 1px; color: #666; }
-        
         .input-box { font-size: 3.5rem; font-weight: bold; text-align: center; margin: 15px 0; letter-spacing: 6px; border-bottom: 2px solid #ccc; padding-bottom: 5px; }
-        
         .keypad { display: grid; grid-template-columns: repeat(3, 1fr) 75px; gap: 12px; margin-bottom: 10px; }
-        
         .btn { background: #ffffff; color: #000000; border: 2px solid #000000; padding: 18px 0; font-size: 1.6rem; font-weight: bold; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; user-select: none; }
         .btn:active { background: #000000; color: #ffffff; }
-        
         .btn-action { background: #000000; color: #ffffff; }
         .btn-action:active { background: #ffffff; color: #000000; }
         
@@ -73,16 +66,11 @@
 
 <script>
 const questionBank = [
-    { number: 1769, answers: [29, 61] },
-    { number: 1457, answers: [31, 47] },
-    { number: 2491, answers: [47, 53] },
-    { number: 4087, answers: [61, 67] },
-    { number: 2021, answers: [43, 47] },
-    { number: 1517, answers: [37, 41] },
-    { number: 3233, answers: [53, 61] },
-    { number: 3953, answers: [59, 67] },
-    { number: 4991, answers: [67, 73] },
-    { number: 6697, answers: [73, 89] }
+    { number: 1769, answers: [29, 61], p: 29, q: 61 },
+    { number: 1457, answers: [31, 47], p: 31, q: 47 },
+    { number: 2491, answers: [47, 53], p: 47, q: 53 },
+    { number: 4087, answers: [61],     p: 61, q: 67 },
+    { number: 2173, answers: [41],     p: 41, q: 53 }
 ];
 
 let gameQuestions = [];
@@ -92,24 +80,24 @@ let currentPot = 10000;
 let timerInterval;
 let inputDigits = ['0', '0'];
 
-// ゲームの状態管理用フラグ
-let isGameStarted = false; // ゲーム自体が始まっているか（Pを押して開始したか）
-let isWaitingNext = false;  // 正解して次のPを待っているか
+let isGameStarted = false; 
+let isWaitingNext = false;  
+let correctAnsThisQuestion = null;
 
 function initGame() {
-    // 10問をランダムピックアップしてセット
     gameQuestions = [...questionBank].sort(() => 0.5 - Math.random()).slice(0, 10);
     currentIdx = 0;
     totalScore = 0;
     isGameStarted = false;
     isWaitingNext = false;
     inputDigits = ['0', '0'];
+    correctAnsThisQuestion = null;
     
-    // 表示の初期化
     document.getElementById('q-num').innerText = "1";
     const problemBox = document.getElementById('display-problem');
     problemBox.innerText = "PRESS P";
     problemBox.classList.add('ready');
+    problemBox.style.color = "#666";
     updateInputDisplay();
 }
 
@@ -127,11 +115,13 @@ function showQuestion() {
     
     isWaitingNext = false;
     inputDigits = ['0', '0'];
+    correctAnsThisQuestion = null;
     document.getElementById('q-num').innerText = currentIdx + 1;
     
     const problemBox = document.getElementById('display-problem');
     problemBox.innerText = gameQuestions[currentIdx].number;
-    problemBox.classList.remove('ready'); // 待機用スタイルを解除
+    problemBox.classList.remove('ready');
+    problemBox.style.color = "#000000";
     updateInputDisplay();
     
     currentPot = 10000;
@@ -148,72 +138,111 @@ function updateInputDisplay() {
 }
 
 function pressNum(numStr) {
-    if (!isGameStarted) return; // 開始前は数字入力を受け付けない
+    if (!isGameStarted) return;
 
-    if (inputDigits[1] === ',') {
-        inputDigits = ['0', numStr];
-        updateInputDisplay();
-        if (!isWaitingNext) checkAnswer();
-        return;
-    }
-
-    if (isWaitingNext) {
-        inputDigits = [inputDigits[1], numStr];
-        updateInputDisplay();
-        const playerAns = parseInt(inputDigits.join(''));
-        if (gameQuestions[currentIdx].answers.includes(playerAns)) {
-            currentIdx++;
-            showQuestion();
-        }
-        return;
-    }
-
+    // 完全に右詰めシフト（コンマだろうが何だろうが左へズレる）
     inputDigits = [inputDigits[1], numStr];
     updateInputDisplay();
-    checkAnswer();
+
+    // 新しい入力状態に基づいて判定へ
+    if (isWaitingNext) {
+        checkAnswerB();
+    } else {
+        checkAnswerA();
+    }
 }
 
-function checkAnswer() {
-    const playerAns = parseInt(inputDigits.join(''));
+function pressComma() {
+    if (!isGameStarted) return;
+
+    // すでに右詰めシフトして「,,」になったらパス発動
+    if (inputDigits[1] === ',') {
+        triggerPass();
+        return;
+    }
+
+    // 通常のコンマ：他の数字と同様に右詰めシフト
+    inputDigits = [inputDigits[1], ','];
+    updateInputDisplay();
+
+    // もしシフトした結果「,,」になっていればパス発動
+    if (inputDigits[0] === ',' && inputDigits[1] === ',') {
+        triggerPass();
+    }
+}
+
+// パス（スキップ）処理の共通化
+function triggerPass() {
+    inputDigits = ['0', '0']; // パス成立時に入力欄リセット
+    updateInputDisplay();
+
     const currentQ = gameQuestions[currentIdx];
-    
-    if (currentQ.answers.includes(playerAns)) {
-        totalScore += currentPot;
-        const otherFactor = currentQ.number / playerAns;
-        document.getElementById('display-problem').innerText = `${playerAns} × ${otherFactor}`;
+    if (!isWaitingNext) {
+        // 【状態Aからのパス】その問題は0点、〜×〜で表示して状態Bへ
+        document.getElementById('display-problem').innerText = `${currentQ.p} × ${currentQ.q}`;
+        document.getElementById('display-problem').style.color = "#666";
         isWaitingNext = true;
+    } else {
+        // 【状態Bからのパス】次の問題に進む、その問題は0点
+        currentIdx++;
+        showQuestion();
+    }
+}
+
+// 【状態A】での数字入力チェック（2桁になったら即判定）
+function checkAnswerA() {
+    // 両方とも数字である（コンマを含まない）場合のみ判定
+    if (inputDigits[0] !== ',' && inputDigits[1] !== ',') {
+        const playerAns = parseInt(inputDigits.join(''));
+        const currentQ = gameQuestions[currentIdx];
+        
+        if (currentQ.answers.includes(playerAns)) {
+            totalScore += currentPot;
+            correctAnsThisQuestion = playerAns;
+            const otherFactor = currentQ.number / playerAns;
+            
+            document.getElementById('display-problem').innerText = otherFactor;
+            document.getElementById('display-problem').style.color = "#666";
+            isWaitingNext = true;
+        }
+        
+        // 判定されたら（正解・不正解問わず）入力欄はリセット
+        inputDigits = ['0', '0'];
+        setTimeout(updateInputDisplay, 100); 
+    }
+}
+
+// 【状態B】での数字入力チェック
+function checkAnswerB() {
+    if (inputDigits[0] !== ',' && inputDigits[1] !== ',') {
+        const playerAns = parseInt(inputDigits.join(''));
+        const currentQ = gameQuestions[currentIdx];
+        const otherFactor = currentQ.number / correctAnsThisQuestion;
+        
+        if (otherFactor === playerAns && otherFactor < 100) {
+            currentIdx++;
+            showQuestion();
+        } else {
+            inputDigits = ['0', '0'];
+            setTimeout(updateInputDisplay, 100);
+        }
     }
 }
 
 function pressBack() {
-    if (!isGameStarted || isWaitingNext) return;
+    if (!isGameStarted) return;
+    // 右詰めシフトの逆（左から0を詰めて右側へシフト）
     inputDigits = ['0', inputDigits[0]];
-    updateInputDisplay();
-}
-
-function pressComma() {
-    if (!isGameStarted || isWaitingNext) return;
-
-    if (inputDigits[1] === ',') {
-        const currentQ = gameQuestions[currentIdx];
-        document.getElementById('display-problem').innerText = `${currentQ.answers.join(' or ')}`;
-        isWaitingNext = true;
-        return;
-    }
-
-    inputDigits = [inputDigits[1], ','];
     updateInputDisplay();
 }
 
 function pressP() {
     if (!isGameStarted) {
-        // まだ始まっていないなら、P起動でゲーム開始！
         startFirstQuestion();
         return;
     }
 
     if (isWaitingNext) {
-        // 正解後またはパス後の次への遷移
         currentIdx++;
         showQuestion();
     }
@@ -234,14 +263,11 @@ function showResult() {
 }
 
 function restartGame() {
-    // リザルト画面を閉じてゲーム画面を戻す
     document.getElementById('result-view').style.display = "none";
     document.getElementById('game-view').style.display = "flex";
-    // ゲームの再初期化（PRESS P状態へ）
     initGame();
 }
 
-// 初回起動
 initGame();
 </script>
 </body>
