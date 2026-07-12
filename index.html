@@ -194,8 +194,6 @@ let gameQuestions = [];
 let currentIdx = 0;
 let totalScore = 0;
 let correctCount = 0; 
-let currentPot = 10000;
-let timerInterval;
 let inputDigits = ['0', '0'];
 let pressCount = 0;
 
@@ -203,9 +201,11 @@ let isGameStarted = false;
 let isWaitingNext = false;  
 let isSkipped = false; 
 let remainingFactor = null;
-
-// 🚀 現在の問題でミス（またはスキップ）が発生したかのフラグ
 let hasMissedCurrentQuestion = false;
+
+// 🚀 新規スコア計算用の変数
+let questionStartTime = 0;  // 各問題の開始時刻(ms)
+let currentMissCount = 0;   // 現在の問題での2桁入力ミス回数(n)
 
 let startTime = 0;
 let endTime = 0;
@@ -267,6 +267,7 @@ function initGame() {
     pressCount = 0;
     remainingFactor = null;
     hasMissedCurrentQuestion = false;
+    currentMissCount = 0;
     
     document.getElementById('q-num').innerText = "1";
     document.getElementById('display-sub').innerText = "";
@@ -285,7 +286,6 @@ function startFirstQuestion() {
 function showQuestion() {
     if (currentIdx >= gameQuestions.length) {
         endTime = performance.now();
-        clearInterval(timerInterval);
         showResult();
         return;
     }
@@ -295,7 +295,8 @@ function showQuestion() {
     inputDigits = ['0', '0'];
     pressCount = 0;
     remainingFactor = null;
-    hasMissedCurrentQuestion = false; // 🚀 新しい問題なのでミスフラグをリセット
+    hasMissedCurrentQuestion = false;
+    currentMissCount = 0; // ミス回数をリセット
     document.getElementById('q-num').innerText = currentIdx + 1;
     
     problemBox.className = "problem-container";
@@ -306,13 +307,8 @@ function showQuestion() {
     
     updateInputDisplay();
     
-    currentPot = 10000;
-    clearInterval(timerInterval);
-    timerInterval = setInterval(() => {
-        if (currentPot > 1000) {
-            currentPot -= 25; 
-        }
-    }, 50);
+    // 🚀 問題の計測開始時間を記録
+    questionStartTime = performance.now();
 }
 
 function updateInputDisplay() {
@@ -333,6 +329,19 @@ function triggerWrongEffects() {
     inputDisplay.classList.remove('flash-anime', 'wrong-anime');
     void inputDisplay.offsetWidth; 
     inputDisplay.classList.add('wrong-anime');
+}
+
+// 🚀 新規：数式を用いた動的スコア計算処理
+function calculateAndAddScore() {
+    const now = performance.now();
+    const s = (now - questionStartTime) / 1000; // 秒数(s)に変換
+    const n = currentMissCount;                  // ミス回数(n)
+    
+    // 数式: x = 10000 / ((s / 9 + 1) * (5 * n + 1))
+    const score = 10000 / ((s / 9 + 1) * (5 * n + 1));
+    
+    // 四捨五入して整数でスコア加算
+    totalScore += Math.round(score);
 }
 
 function pressNum(numStr) {
@@ -375,10 +384,11 @@ function triggerPass() {
         return;
     }
 
-    // 🚀 スキップされたのでミス扱い（不正解フラグを立てる ＆ 赤エフェクトに変更）
+    // スキップされたので不正解扱いフラグ＋赤エフェクト
     hasMissedCurrentQuestion = true;
     triggerWrongEffects();
 
+    // 🚀 コンマスキップ時はスコア計算を行わず（0点）、次の画面状態へ進める
     inputDigits = ['0', '0'];
     pressCount = 0;
     updateInputDisplay();
@@ -399,7 +409,6 @@ function checkAnswerA() {
         const currentQ = gameQuestions[currentIdx];
         
         if (playerAns === currentQ.p || playerAns === currentQ.q) {
-            totalScore += currentPot;
             remainingFactor = (playerAns === currentQ.p) ? currentQ.q : currentQ.p;
             
             document.getElementById('display-sub').innerText = `${currentQ.number} = ${playerAns} ×`;
@@ -414,8 +423,9 @@ function checkAnswerA() {
             pressCount = 0;
             updateInputDisplay(); 
         } else {
-            // 🚀 Aでミスしたためフラグを立てて赤エフェクト
+            // 不正解時の処理：ミスフラグを立て、ミス回数(n)をカウントアップして赤エフェクト
             hasMissedCurrentQuestion = true;
+            currentMissCount++;
             triggerWrongEffects();
             inputDigits = ['0', '0'];
             pressCount = 0;
@@ -431,16 +441,20 @@ function checkAnswerB() {
         const playerAns = parseInt(inputDigits.join(''));
         
         if (playerAns === remainingFactor) {
-            // 🚀 AでもBでも一度もミスしていない場合のみ、完全正解としてカウント
+            // AでもBでも一度もミスしていない場合のみ、完全正解としてカウント
             if (!hasMissedCurrentQuestion) {
                 correctCount++;
             }
+            // 🚀 A・B両方をクリアした最終正解の瞬間にスコアを一撃計算
+            calculateAndAddScore();
+            
             triggerCorrectEffects();
             currentIdx++;
             setTimeout(showQuestion, 80);
         } else {
-            // 🚀 Bでミスしたためフラグを立てて赤エフェクト
+            // 不正解時の処理：ミスフラグを立て、ミス回数(n)をカウントアップして赤エフェクト
             hasMissedCurrentQuestion = true;
+            currentMissCount++;
             triggerWrongEffects();
             inputDigits = ['0', '0'];
             pressCount = 0;
@@ -463,6 +477,7 @@ function pressP() {
     }
 
     if (isWaitingNext) {
+        // 🚀 スキップ（0点）された状態でPを押して次へ進む時もエフェクトをかけて遷移
         triggerCorrectEffects();
         currentIdx++;
         setTimeout(showQuestion, 80);
