@@ -8,28 +8,42 @@
         * { 
             box-sizing: border-box; 
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            touch-action: manipulation;
+            touch-action: none;
             -webkit-user-select: none;
             user-select: none;
             -webkit-touch-callout: none;
         }
-        body { margin: 0; padding: 0; background: #ffffff; color: #000000; display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; }
+        
+        html, body {
+            margin: 0;
+            padding: 0;
+            background: #ffffff;
+            color: #000000;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            position: fixed;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
         
         .game-wrapper { 
             width: 100%; 
             max-width: 380px; 
-            height: 100vh;
+            height: 100%;
             max-height: 680px; 
             padding: 15px 20px; 
             display: flex; 
             flex-direction: column; 
             justify-content: space-between; 
+            position: relative;
         }
         
-        .header-area { margin-top: 5px; width: 100%; }
+        .header-area { margin-top: 5px; width: 100%; position: relative; }
         .progress { font-size: 1.1rem; text-align: right; color: #666; margin-bottom: 5px; font-weight: 600; }
         
-        .problem-container { background: #ffffff; color: #000000; border: 2.5px solid #000; border-radius: 12px; padding: 20px 15px; text-align: center; min-height: 180px; display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%; }
+        .problem-container { background: #ffffff; color: #000000; border: 2.5px solid #000; border-radius: 12px; padding: 20px 15px; text-align: center; min-height: 180px; display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%; position: relative; }
         
         .sub-display { font-size: 1.4rem; color: #666666; min-height: 2rem; margin-bottom: 5px; letter-spacing: 1px; font-weight: 500; }
         .main-display { font-size: 4.2rem; letter-spacing: 1px; line-height: 1.1; font-weight: 600; }
@@ -37,7 +51,24 @@
         .ready-mode .main-display { font-size: 2.2rem; }
         .skipped-mode .main-display { font-size: 3.2rem; }
         
-        .input-box { font-size: 3.2rem; text-align: center; margin: 8px 0 12px 0; letter-spacing: 6px; border-bottom: 2.5px solid #ccc; padding-bottom: 3px; color: #000; font-weight: 600; }
+        /* 🚀 長押しリセット用プログレスバー */
+        .gauge-container {
+            width: 100%;
+            height: 6px;
+            background: #eee;
+            border-radius: 3px;
+            margin-top: 12px;
+            overflow: hidden;
+            display: none; /* 通常時は非表示 */
+        }
+        .gauge-bar {
+            width: 0%;
+            height: 100%;
+            background: #000000;
+            transition: width 0.1s linear;
+        }
+        
+        .input-box { font-size: 3.2rem; text-align: center; margin: 8px 0 12px 0; letter-spacing: 6px; border-bottom: 2.5px solid #ccc; padding-bottom: 3px; color: #000; font-weight: 600; min-height: 4.5rem; line-height: 4.5rem; }
         
         .keypad { 
             display: grid; 
@@ -146,6 +177,10 @@
         <div class="problem-container ready-mode" id="problem-box">
             <div class="sub-display" id="display-sub"></div>
             <div class="main-display" id="display-main">PRESS P</div>
+            
+            <div class="gauge-container" id="gauge-wrap">
+                <div class="gauge-bar" id="gauge-fill"></div>
+            </div>
         </div>
     </div>
     
@@ -153,7 +188,7 @@
         <div class="input-box" id="display-input">00</div>
         
         <div class="keypad" id="keyboard">
-            <button class="btn btn-action" data-action="back">◀︎</button>
+            <button class="btn btn-action" data-action="back" id="btn-back">◀︎</button>
             <button class="btn btn-action" data-action="comma">,</button>
             <button class="btn btn-action" data-action="p">P</button>
 
@@ -182,6 +217,17 @@
 </div>
 
 <script>
+// 💾 localStorage 例外保護ラッパー
+function getStorageItem(key, fallback) {
+    try {
+        const val = localStorage.getItem(key);
+        return val !== null ? val : fallback;
+    } catch (e) { return fallback; }
+}
+function setStorageItem(key, value) {
+    try { localStorage.setItem(key, value); } catch (e) {}
+}
+
 const questionBank = [
     { number: 1769, p: 29, q: 61 },
     { number: 1457, p: 31, q: 47 },
@@ -203,22 +249,31 @@ let isSkipped = false;
 let remainingFactor = null;
 let hasMissedCurrentQuestion = false;
 
-// 🚀 新規スコア計算用の変数
-let questionStartTime = 0;  // 各問題の開始時刻(ms)
-let currentMissCount = 0;   // 現在の問題での2桁入力ミス回数(n)
+let questionStartTime = 0; 
+let currentMissCount = 0;   
 
 let startTime = 0;
 let endTime = 0;
 
+// 🚀 5秒長押しリセット管理用変数
+let longPressTimer = null;
+let gaugeInterval = null;
+let longPressStartTime = 0;
+const REQUIRED_PRESS_TIME = 5000; // 5秒(ms)
+
 const keyboard = document.getElementById('keyboard');
 const problemBox = document.getElementById('problem-box');
 const inputDisplay = document.getElementById('display-input');
+const backButton = document.getElementById('btn-back');
 const startEvent = ('ontouchstart' in window) ? 'touchstart' : 'mousedown';
+const endEvent = ('ontouchstart' in window) ? 'touchend' : 'mouseup';
+
+// 📱 画面固定ガード
+document.addEventListener('touchmove', (e) => e.preventDefault(), { passive: false });
 
 keyboard.addEventListener(startEvent, function(e) {
     const target = e.target.closest('button');
     if (!target) return;
-    
     e.preventDefault();
     
     target.classList.remove('pop-anime');
@@ -234,24 +289,58 @@ keyboard.addEventListener(startEvent, function(e) {
     else pressNum(action);
 });
 
-keyboard.addEventListener('animationend', function(e) {
-    if (e.target.tagName === 'BUTTON') {
-        e.target.classList.remove('pop-anime');
-    }
+// 🚀 ◀︎ボタン専用の長押し監視（PRESS P画面のみ有効）
+backButton.addEventListener(startEvent, function(e) {
+    if (isGameStarted) return;
+    e.preventDefault();
+    
+    document.getElementById('gauge-wrap').style.display = 'block';
+    longPressStartTime = performance.now();
+    
+    gaugeInterval = setInterval(() => {
+        const elapsed = performance.now() - longPressStartTime;
+        const percent = Math.min((elapsed / REQUIRED_PRESS_TIME) * 100, 100);
+        document.getElementById('gauge-fill').style.width = `${percent}%`;
+    }, 100);
+
+    longPressTimer = setTimeout(() => {
+        clearInterval(gaugeInterval);
+        document.getElementById('gauge-fill').style.width = '100%';
+        
+        // 5秒経過時のポップアップ処理
+        setTimeout(() => {
+            resetGauge();
+            if (confirm('ハイスコアをリセットしますか？')) {
+                setStorageItem('prime_high_score', 0);
+                alert('ハイスコアをリセットしました');
+            }
+        }, 50);
+    }, REQUIRED_PRESS_TIME);
 });
 
+// 指が離れた、またはエリア外に出たら長押しをキャンセル
+backButton.addEventListener(endEvent, resetGauge);
+backButton.addEventListener('touchcancel', resetGauge);
+backButton.addEventListener('mouseleave', resetGauge);
+
+function resetGauge() {
+    if (longPressTimer) clearTimeout(longPressTimer);
+    if (gaugeInterval) clearInterval(gaugeInterval);
+    longPressTimer = null;
+    gaugeInterval = null;
+    document.getElementById('gauge-fill').style.width = '0%';
+    document.getElementById('gauge-wrap').style.display = 'none';
+}
+
+keyboard.addEventListener('animationend', function(e) {
+    if (e.target.tagName === 'BUTTON') e.target.classList.remove('pop-anime');
+});
 problemBox.addEventListener('animationend', () => problemBox.classList.remove('correct-anime'));
 inputDisplay.addEventListener('animationend', () => {
-    inputDisplay.classList.remove('flash-anime');
-    inputDisplay.classList.remove('wrong-anime');
+    inputDisplay.classList.remove('flash-anime', 'wrong-anime');
 });
-
 document.getElementById('btn-restart').addEventListener(startEvent, function(e) {
     e.preventDefault();
-    const target = e.target;
-    target.classList.remove('pop-anime');
-    void target.offsetWidth;
-    target.classList.add('pop-anime');
     setTimeout(restartGame, 100);
 });
 
@@ -275,17 +364,18 @@ function initGame() {
     
     problemBox.className = "problem-container ready-mode";
     updateInputDisplay();
+    resetGauge();
 }
 
 function startFirstQuestion() {
     isGameStarted = true;
-    startTime = performance.now();
+    startTime = performance.now(); 
     showQuestion();
 }
 
 function showQuestion() {
     if (currentIdx >= gameQuestions.length) {
-        endTime = performance.now();
+        endTime = performance.now(); 
         showResult();
         return;
     }
@@ -296,7 +386,7 @@ function showQuestion() {
     pressCount = 0;
     remainingFactor = null;
     hasMissedCurrentQuestion = false;
-    currentMissCount = 0; // ミス回数をリセット
+    currentMissCount = 0; 
     document.getElementById('q-num').innerText = currentIdx + 1;
     
     problemBox.className = "problem-container";
@@ -306,9 +396,7 @@ function showQuestion() {
     document.getElementById('display-main').innerText = currentQ.number;
     
     updateInputDisplay();
-    
-    // 🚀 問題の計測開始時間を記録
-    questionStartTime = performance.now();
+    questionStartTime = performance.now(); 
 }
 
 function updateInputDisplay() {
@@ -331,16 +419,12 @@ function triggerWrongEffects() {
     inputDisplay.classList.add('wrong-anime');
 }
 
-// 🚀 新規：数式を用いた動的スコア計算処理
 function calculateAndAddScore() {
     const now = performance.now();
-    const s = (now - questionStartTime) / 1000; // 秒数(s)に変換
-    const n = currentMissCount;                  // ミス回数(n)
+    const s = (now - questionStartTime) / 1000; 
+    const n = currentMissCount;                  
     
-    // 数式: x = 10000 / ((s / 9 + 1) * (5 * n + 1))
     const score = 10000 / ((s / 9 + 1) * (5 * n + 1));
-    
-    // 四捨五入して整数でスコア加算
     totalScore += Math.round(score);
 }
 
@@ -352,28 +436,26 @@ function pressNum(numStr) {
     updateInputDisplay();
 
     if (pressCount >= 2) {
-        if (isWaitingNext) {
-            checkAnswerB();
-        } else {
-            checkAnswerA();
-        }
+        if (isWaitingNext) checkAnswerB();
+        else checkAnswerA();
     }
 }
 
 function pressComma() {
     if (!isGameStarted) return;
 
-    if (inputDigits[1] === ',') {
-        triggerPass();
-        return;
-    }
-
     inputDigits = [inputDigits[1], ','];
     pressCount++;
     updateInputDisplay();
 
-    if (inputDigits[0] === ',' && inputDigits[1] === ',') {
-        triggerPass();
+    if (pressCount >= 2) {
+        if (inputDigits[0] === ',' && inputDigits[1] === ',') {
+            triggerPass();
+        } else {
+            // カンマ混じりの不正な2桁入力（例:「5,」など）はミス判定
+            if (isWaitingNext) checkAnswerB();
+            else checkAnswerA();
+        }
     }
 }
 
@@ -384,11 +466,9 @@ function triggerPass() {
         return;
     }
 
-    // スキップされたので不正解扱いフラグ＋赤エフェクト
     hasMissedCurrentQuestion = true;
     triggerWrongEffects();
 
-    // 🚀 コンマスキップ時はスコア計算を行わず（0点）、次の画面状態へ進める
     inputDigits = ['0', '0'];
     pressCount = 0;
     updateInputDisplay();
@@ -423,7 +503,6 @@ function checkAnswerA() {
             pressCount = 0;
             updateInputDisplay(); 
         } else {
-            // 不正解時の処理：ミスフラグを立て、ミス回数(n)をカウントアップして赤エフェクト
             hasMissedCurrentQuestion = true;
             currentMissCount++;
             triggerWrongEffects();
@@ -431,6 +510,14 @@ function checkAnswerA() {
             pressCount = 0;
             updateInputDisplay();
         }
+    } else {
+        // カンマを含む不正な2桁の場合もミス
+        hasMissedCurrentQuestion = true;
+        currentMissCount++;
+        triggerWrongEffects();
+        inputDigits = ['0', '0'];
+        pressCount = 0;
+        updateInputDisplay();
     }
 }
 
@@ -441,18 +528,15 @@ function checkAnswerB() {
         const playerAns = parseInt(inputDigits.join(''));
         
         if (playerAns === remainingFactor) {
-            // AでもBでも一度もミスしていない場合のみ、完全正解としてカウント
             if (!hasMissedCurrentQuestion) {
                 correctCount++;
             }
-            // 🚀 A・B両方をクリアした最終正解の瞬間にスコアを一撃計算
             calculateAndAddScore();
             
             triggerCorrectEffects();
             currentIdx++;
             setTimeout(showQuestion, 80);
         } else {
-            // 不正解時の処理：ミスフラグを立て、ミス回数(n)をカウントアップして赤エフェクト
             hasMissedCurrentQuestion = true;
             currentMissCount++;
             triggerWrongEffects();
@@ -460,11 +544,21 @@ function checkAnswerB() {
             pressCount = 0;
             updateInputDisplay();
         }
+    } else {
+        // カンマを含む不正な2桁の場合もミス
+        hasMissedCurrentQuestion = true;
+        currentMissCount++;
+        triggerWrongEffects();
+        inputDigits = ['0', '0'];
+        pressCount = 0;
+        updateInputDisplay();
     }
 }
 
+// 🚀 数字と完全にルールを統一した、1文字ずつのバックスペース処理
 function pressBack() {
     if (!isGameStarted) return;
+    
     inputDigits = ['0', inputDigits[0]];
     if (pressCount > 0) pressCount--;
     updateInputDisplay();
@@ -477,7 +571,6 @@ function pressP() {
     }
 
     if (isWaitingNext) {
-        // 🚀 スキップ（0点）された状態でPを押して次へ進む時もエフェクトをかけて遷移
         triggerCorrectEffects();
         currentIdx++;
         setTimeout(showQuestion, 80);
@@ -502,11 +595,11 @@ function showResult() {
     const clearTimeMs = endTime - startTime;
     document.getElementById('result-time').innerText = formatClearTime(clearTimeMs);
     
-    const oldHighScore = parseInt(localStorage.getItem('prime_high_score') || 0);
+    const oldHighScore = parseInt(getStorageItem('prime_high_score', '0'));
     const contentArea = document.getElementById('result-content-area');
     
     if (totalScore > oldHighScore) {
-        localStorage.setItem('prime_high_score', totalScore);
+        setStorageItem('prime_high_score', totalScore);
         contentArea.innerHTML = `
             <div class="new-record-title">ハイスコアを更新！</div>
             <div class="record-transition">
