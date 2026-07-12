@@ -258,7 +258,6 @@ let gaugeInterval = null;
 let longPressStartTime = 0;
 const REQUIRED_PRESS_TIME = 5000; 
 
-const keyboard = document.getElementById('keyboard');
 const problemBox = document.getElementById('problem-box');
 const inputDisplay = document.getElementById('display-input');
 const backButton = document.getElementById('btn-back');
@@ -267,22 +266,27 @@ const endEvent = ('ontouchstart' in window) ? 'touchend' : 'mouseup';
 
 document.addEventListener('touchmove', (e) => e.preventDefault(), { passive: false });
 
-keyboard.addEventListener(startEvent, function(e) {
-    const target = e.target.closest('button');
-    if (!target) return;
-    e.preventDefault();
-    
-    target.classList.remove('pop-anime');
-    void target.offsetWidth;
-    target.classList.add('pop-anime');
-    
-    const action = target.getAttribute('data-action');
-    if (!action) return;
-    
-    if (action === 'back') pressBack();
-    else if (action === 'comma') pressComma();
-    else if (action === 'p') pressP();
-    else pressNum(action);
+// 🚀 【超連打仕様】すべてのボタンに対して独立したマルチタッチイベントを直接バインド
+document.querySelectorAll('.keypad .btn').forEach(button => {
+    button.addEventListener(startEvent, function(e) {
+        e.preventDefault();
+        e.stopPropagation(); // 他のタッチ判定への干渉を完全遮断
+        
+        this.classList.remove('pop-anime');
+        void this.offsetWidth;
+        this.classList.add('pop-anime');
+        
+        const action = this.getAttribute('data-action');
+        if (!action) return;
+        
+        // 0ミリ秒非同期のキューイングにより、正解時の画面リセットを追い越して打鍵を確実に滑り込ませる
+        setTimeout(() => {
+            if (action === 'back') pressBack();
+            else if (action === 'comma') pressComma();
+            else if (action === 'p') pressP();
+            else pressNum(action);
+        }, 0);
+    });
 });
 
 backButton.addEventListener(startEvent, function(e) {
@@ -325,9 +329,12 @@ function resetGauge() {
     document.getElementById('gauge-wrap').style.display = 'none';
 }
 
-keyboard.addEventListener('animationend', function(e) {
-    if (e.target.tagName === 'BUTTON') e.target.classList.remove('pop-anime');
+document.querySelectorAll('.keypad .btn').forEach(btn => {
+    btn.addEventListener('animationend', function(e) {
+        this.classList.remove('pop-anime');
+    });
 });
+
 problemBox.addEventListener('animationend', () => problemBox.classList.remove('correct-anime'));
 inputDisplay.addEventListener('animationend', () => {
     inputDisplay.classList.remove('flash-anime', 'wrong-anime');
@@ -526,7 +533,7 @@ function checkAnswerB() {
             triggerCorrectEffects();
             
             currentIdx++;
-            showQuestion(); // 🚀 先行入力を妨げないよう即座に次へ遷移
+            showQuestion(); 
         } else {
             hasMissedCurrentQuestion = true;
             currentMissCount++;
