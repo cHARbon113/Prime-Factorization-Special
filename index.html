@@ -266,13 +266,13 @@ const endEvent = ('ontouchstart' in window) ? 'touchend' : 'mouseup';
 
 document.addEventListener('touchmove', (e) => e.preventDefault(), { passive: false });
 
-// 🚀 【超連打対応仕様】独立したマルチタッチイベントをダイレクトバインド
+// 🚀 マルチタッチ対応・物理タッチ時刻最優先記録
 document.querySelectorAll('.keypad .btn').forEach(button => {
     button.addEventListener(startEvent, function(e) {
         e.preventDefault();
         e.stopPropagation(); 
         
-        const clickTime = performance.now(); // ★ 物理タッチの瞬間を最優先記録
+        const clickTime = performance.now(); // ★ タッチした瞬間を精密に記録
         
         this.classList.remove('pop-anime');
         void this.offsetWidth;
@@ -363,14 +363,12 @@ function startFirstQuestion() {
     isGameStarted = true;
     startTime = performance.now(); 
     
-    // 🚀 【順序の修正】先に1問目を解くための内部状態を完璧に作りきる
     isWaitingNext = false; 
     isSkipped = false;
     inputDigits = ['0', '0'];
     pressCount = 0;
-    questionStartTime = performance.now(); // 精密タイマーを始動
+    questionStartTime = performance.now(); 
     
-    // 🚀 【順序の修正】すべての準備が終わった「最後の最後」に画面を出す
     showQuestion(); 
 }
 
@@ -423,6 +421,7 @@ function calculateAndAddScore(clickTime) {
     const s = (clickTime - questionStartTime) / 1000; 
     const n = currentMissCount;                  
     
+    // スコア計算式自体は完全正常（sが1秒未満ならきれいに9000点以上になる）
     const score = 10000 / ((s / 9 + 1) * (5 * n + 1));
     totalScore += Math.round(score);
 }
@@ -435,6 +434,7 @@ function pressNum(numStr, clickTime) {
     updateInputDisplay();
 
     if (pressCount >= 2) {
+        // 🚀 引数clickTimeを確実に引き渡してBの精密判定を行うように修正
         if (isWaitingNext) checkAnswerB(clickTime); 
         else checkAnswerA();
     }
@@ -518,6 +518,7 @@ function checkAnswerA() {
     }
 }
 
+// 🚀 正しく物理タッチ時刻(clickTime)を受け取ってスコア関数へ直結
 function checkAnswerB(clickTime) {
     if (isSkipped) return;
 
@@ -528,7 +529,7 @@ function checkAnswerB(clickTime) {
             if (!hasMissedCurrentQuestion) {
                 correctCount++;
             }
-            calculateAndAddScore(clickTime); 
+            calculateAndAddScore(clickTime); // ★物理時刻を直接渡す！
             triggerCorrectEffects();
             
             currentIdx++;
@@ -560,7 +561,6 @@ function pressBack() {
 }
 
 function pressP() {
-    // 🚀 スタート前のPとゲーム中のPを安全に隔離
     if (!isGameStarted) {
         startFirstQuestion();
         return; 
@@ -569,8 +569,9 @@ function pressP() {
     if (isWaitingNext && !isSkipped) {
         triggerCorrectEffects();
         currentIdx++;
-        showQuestion();
+        // 🚀 画面を切り替える『前』に、次の問題の精密タイマーをジャストで起動させる
         questionStartTime = performance.now(); 
+        showQuestion();
     }
 }
 
