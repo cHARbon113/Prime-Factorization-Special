@@ -261,18 +261,20 @@ const REQUIRED_PRESS_TIME = 5000;
 const problemBox = document.getElementById('problem-box');
 const inputDisplay = document.getElementById('display-input');
 const backButton = document.getElementById('btn-back');
+
+// イベント発火の定義（スマホかPCかで重複を防ぐ）
 const startEvent = ('ontouchstart' in window) ? 'touchstart' : 'mousedown';
 const endEvent = ('ontouchstart' in window) ? 'touchend' : 'mouseup';
 
 document.addEventListener('touchmove', (e) => e.preventDefault(), { passive: false });
 
-// 🚀 【超連打対応仕様】独立したマルチタッチイベントをダイレクトバインド
+// キーパッドの入力制御（二重入力防止対応）
 document.querySelectorAll('.keypad .btn').forEach(button => {
-    button.addEventListener(startEvent, function(e) {
+    const handlePress = function(e) {
         e.preventDefault();
         e.stopPropagation(); 
         
-        const clickTime = performance.now(); // ★ 物理タッチの瞬間を最優先記録
+        const clickTime = performance.now(); 
         
         this.classList.remove('pop-anime');
         void this.offsetWidth;
@@ -281,18 +283,31 @@ document.querySelectorAll('.keypad .btn').forEach(button => {
         const action = this.getAttribute('data-action');
         if (!action) return;
         
-        setTimeout(() => {
-            if (action === 'back') pressBack();
-            else if (action === 'comma') pressComma();
-            else if (action === 'p') pressP();
-            else pressNum(action, clickTime); // 物理時刻を伝播
-        }, 0);
-    });
+        // ◀︎ボタンかつゲーム開始前の場合は、back用の個別処理（長押し）に任せるためここでは何もしない
+        if (action === 'back' && !isGameStarted) return;
+        
+        if (action === 'back') pressBack();
+        else if (action === 'comma') pressComma();
+        else if (action === 'p') pressP();
+        else pressNum(action, clickTime);
+    };
+
+    if ('ontouchstart' in window) {
+        button.addEventListener('touchstart', handlePress, { passive: false });
+    } else {
+        button.addEventListener('mousedown', handlePress);
+    }
 });
 
-backButton.addEventListener(startEvent, function(e) {
+// ◀︎ボタン（ハイスコア削除長押し用）のイベント制御
+const startLongPress = function(e) {
     if (isGameStarted) return;
     e.preventDefault();
+    e.stopPropagation();
+    
+    backButton.classList.remove('pop-anime');
+    void backButton.offsetWidth;
+    backButton.classList.add('pop-anime');
     
     document.getElementById('gauge-wrap').style.display = 'block';
     longPressStartTime = performance.now();
@@ -315,11 +330,17 @@ backButton.addEventListener(startEvent, function(e) {
             }
         }, 50);
     }, REQUIRED_PRESS_TIME);
-});
+};
 
-backButton.addEventListener(endEvent, resetGauge);
-backButton.addEventListener('touchcancel', resetGauge);
-backButton.addEventListener('mouseleave', resetGauge);
+if ('ontouchstart' in window) {
+    backButton.addEventListener('touchstart', startLongPress, { passive: false });
+    backButton.addEventListener('touchend', resetGauge);
+    backButton.addEventListener('touchcancel', resetGauge);
+} else {
+    backButton.addEventListener('mousedown', startLongPress);
+    backButton.addEventListener('mouseup', resetGauge);
+    backButton.addEventListener('mouseleave', resetGauge);
+}
 
 document.querySelectorAll('.keypad .btn').forEach(btn => {
     btn.addEventListener('animationend', function(e) {
@@ -331,10 +352,17 @@ problemBox.addEventListener('animationend', () => problemBox.classList.remove('c
 inputDisplay.addEventListener('animationend', () => {
     inputDisplay.classList.remove('flash-anime', 'wrong-anime');
 });
-document.getElementById('btn-restart').addEventListener(startEvent, function(e) {
+
+// RETRYボタンの設定
+const handleRestart = function(e) {
     e.preventDefault();
     setTimeout(restartGame, 100);
-});
+};
+if ('ontouchstart' in window) {
+    document.getElementById('btn-restart').addEventListener('touchstart', handleRestart, { passive: false });
+} else {
+    document.getElementById('btn-restart').addEventListener('mousedown', handleRestart);
+}
 
 function initGame() {
     gameQuestions = [...questionBank].sort(() => 0.5 - Math.random()).slice(0, 10);
@@ -362,14 +390,10 @@ function initGame() {
 function startFirstQuestion() {
     isGameStarted = true;
     startTime = performance.now(); 
-    
-    // 🚀 【順序の修正】先に1問目を解くための内部状態を完璧に作りきる
     isWaitingNext = false; 
     isSkipped = false;
     inputDigits = ['0', '0'];
     pressCount = 0;
-    
-    // 🚀 【順序の修正】すべての準備が終わった「最後の最後」に画面を出す
     showQuestion(); 
 }
 
@@ -396,8 +420,6 @@ function showQuestion() {
     document.getElementById('display-main').innerText = currentQ.number;
     
     updateInputDisplay();
-
-    // 🚀 【バグ修正】問題が表示された「その瞬間」の時刻を正しくリセットする
     questionStartTime = performance.now(); 
 }
 
@@ -567,7 +589,7 @@ function pressP() {
         return; 
     }
 
-    if (isWaitingNext && !isSkipped) {
+    if (isWaitingNext) {
         triggerCorrectEffects();
         currentIdx++;
         showQuestion();
