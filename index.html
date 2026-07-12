@@ -266,13 +266,13 @@ const endEvent = ('ontouchstart' in window) ? 'touchend' : 'mouseup';
 
 document.addEventListener('touchmove', (e) => e.preventDefault(), { passive: false });
 
-// 🚀 【超連打仕様】すべてのボタンに対して独立したマルチタッチイベントを直接バインド
+// 🚀 すべてのボタンに対して独立したマルチタッチイベントを直接バインド
 document.querySelectorAll('.keypad .btn').forEach(button => {
     button.addEventListener(startEvent, function(e) {
         e.preventDefault();
         e.stopPropagation(); 
         
-        const clickTime = performance.now(); // ★ 物理タッチのまさにその瞬間を最優先記録
+        const clickTime = performance.now(); // ★ 物理タッチの瞬間を最優先記録
         
         this.classList.remove('pop-anime');
         void this.offsetWidth;
@@ -361,9 +361,12 @@ function initGame() {
 
 function startFirstQuestion() {
     isGameStarted = true;
-    showQuestion();
-    questionStartTime = performance.now(); // 🚀 1問目の純粋タイマースタート
     startTime = performance.now(); 
+    showQuestion();
+    
+    // 🚀 1問目開始時のフラグと精密タイマーを確実に初期化
+    isWaitingNext = false; 
+    questionStartTime = performance.now(); 
 }
 
 function showQuestion() {
@@ -389,7 +392,6 @@ function showQuestion() {
     document.getElementById('display-main').innerText = currentQ.number;
     
     updateInputDisplay();
-    // ❌ ここにあったタイマー自動スタートを撤廃（Pボタンと連動させる）
 }
 
 function updateInputDisplay() {
@@ -412,7 +414,6 @@ function triggerWrongEffects() {
     inputDisplay.classList.add('wrong-anime');
 }
 
-// 🚀 プログラム実行時ではなく、物理タッチされた時刻(clickTime)をベースに計算
 function calculateAndAddScore(clickTime) {
     const s = (clickTime - questionStartTime) / 1000; 
     const n = currentMissCount;                  
@@ -429,7 +430,7 @@ function pressNum(numStr, clickTime) {
     updateInputDisplay();
 
     if (pressCount >= 2) {
-        if (isWaitingNext) checkAnswerB(clickTime); // 物理時刻を引き渡す
+        if (isWaitingNext) checkAnswerB(clickTime); 
         else checkAnswerA();
     }
 }
@@ -507,7 +508,7 @@ function checkAnswerA() {
         currentMissCount++;
         triggerWrongEffects();
         inputDigits = ['0', '0'];
-            pressCount = 0;
+        pressCount = 0;
         updateInputDisplay();
     }
 }
@@ -522,7 +523,7 @@ function checkAnswerB(clickTime) {
             if (!hasMissedCurrentQuestion) {
                 correctCount++;
             }
-            calculateAndAddScore(clickTime); // ★物理タッチ時刻で精密スコア加算
+            calculateAndAddScore(clickTime); 
             triggerCorrectEffects();
             
             currentIdx++;
@@ -540,7 +541,7 @@ function checkAnswerB(clickTime) {
         currentMissCount++;
         triggerWrongEffects();
         inputDigits = ['0', '0'];
-            pressCount = 0;
+        pressCount = 0;
         updateInputDisplay();
     }
 }
@@ -563,7 +564,7 @@ function pressP() {
         triggerCorrectEffects();
         currentIdx++;
         showQuestion();
-        questionStartTime = performance.now(); // 🚀 Pを押して「真に画面が切り替わった瞬間」からタイマーを回す！
+        questionStartTime = performance.now(); // 🚀 Pを押して「真に画面が切り替わった瞬間」から次のタイマーを回す
     }
 }
 
