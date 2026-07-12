@@ -266,7 +266,7 @@ const endEvent = ('ontouchstart' in window) ? 'touchend' : 'mouseup';
 
 document.addEventListener('touchmove', (e) => e.preventDefault(), { passive: false });
 
-// 🚀 すべてのボタンに対して独立したマルチタッチイベントを直接バインド
+// 🚀 【超連打対応仕様】独立したマルチタッチイベントをダイレクトバインド
 document.querySelectorAll('.keypad .btn').forEach(button => {
     button.addEventListener(startEvent, function(e) {
         e.preventDefault();
@@ -362,11 +362,16 @@ function initGame() {
 function startFirstQuestion() {
     isGameStarted = true;
     startTime = performance.now(); 
-    showQuestion();
     
-    // 🚀 1問目開始時のフラグと精密タイマーを確実に初期化
+    // 🚀 【順序の修正】先に1問目を解くための内部状態を完璧に作りきる
     isWaitingNext = false; 
-    questionStartTime = performance.now(); 
+    isSkipped = false;
+    inputDigits = ['0', '0'];
+    pressCount = 0;
+    questionStartTime = performance.now(); // 精密タイマーを始動
+    
+    // 🚀 【順序の修正】すべての準備が終わった「最後の最後」に画面を出す
+    showQuestion(); 
 }
 
 function showQuestion() {
@@ -555,16 +560,17 @@ function pressBack() {
 }
 
 function pressP() {
+    // 🚀 スタート前のPとゲーム中のPを安全に隔離
     if (!isGameStarted) {
         startFirstQuestion();
-        return;
+        return; 
     }
 
-    if (isWaitingNext) {
+    if (isWaitingNext && !isSkipped) {
         triggerCorrectEffects();
         currentIdx++;
         showQuestion();
-        questionStartTime = performance.now(); // 🚀 Pを押して「真に画面が切り替わった瞬間」から次のタイマーを回す
+        questionStartTime = performance.now(); 
     }
 }
 
@@ -610,6 +616,13 @@ function restartGame() {
     document.getElementById('result-view').style.display = "none";
     document.getElementById('game-view').style.display = "flex";
     initGame();
+}
+
+function resetGauge() {
+    if (longPressTimer) clearTimeout(longPressTimer);
+    if (gaugeInterval) clearInterval(gaugeInterval);
+    document.getElementById('gauge-wrap').style.display = 'none';
+    document.getElementById('gauge-fill').style.width = '0%';
 }
 
 initGame();
