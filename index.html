@@ -270,7 +270,9 @@ document.addEventListener('touchmove', (e) => e.preventDefault(), { passive: fal
 document.querySelectorAll('.keypad .btn').forEach(button => {
     button.addEventListener(startEvent, function(e) {
         e.preventDefault();
-        e.stopPropagation(); // 他のタッチ判定への干渉を完全遮断
+        e.stopPropagation(); 
+        
+        const clickTime = performance.now(); // ★ 物理タッチのまさにその瞬間を最優先記録
         
         this.classList.remove('pop-anime');
         void this.offsetWidth;
@@ -279,12 +281,11 @@ document.querySelectorAll('.keypad .btn').forEach(button => {
         const action = this.getAttribute('data-action');
         if (!action) return;
         
-        // 0ミリ秒非同期のキューイングにより、正解時の画面リセットを追い越して打鍵を確実に滑り込ませる
         setTimeout(() => {
             if (action === 'back') pressBack();
             else if (action === 'comma') pressComma();
             else if (action === 'p') pressP();
-            else pressNum(action);
+            else pressNum(action, clickTime); // 物理時刻を伝播
         }, 0);
     });
 });
@@ -319,15 +320,6 @@ backButton.addEventListener(startEvent, function(e) {
 backButton.addEventListener(endEvent, resetGauge);
 backButton.addEventListener('touchcancel', resetGauge);
 backButton.addEventListener('mouseleave', resetGauge);
-
-function resetGauge() {
-    if (longPressTimer) clearTimeout(longPressTimer);
-    if (gaugeInterval) clearInterval(gaugeInterval);
-    longPressTimer = null;
-    gaugeInterval = null;
-    document.getElementById('gauge-fill').style.width = '0%';
-    document.getElementById('gauge-wrap').style.display = 'none';
-}
 
 document.querySelectorAll('.keypad .btn').forEach(btn => {
     btn.addEventListener('animationend', function(e) {
@@ -369,8 +361,9 @@ function initGame() {
 
 function startFirstQuestion() {
     isGameStarted = true;
-    startTime = performance.now(); 
     showQuestion();
+    questionStartTime = performance.now(); // 🚀 1問目の純粋タイマースタート
+    startTime = performance.now(); 
 }
 
 function showQuestion() {
@@ -396,7 +389,7 @@ function showQuestion() {
     document.getElementById('display-main').innerText = currentQ.number;
     
     updateInputDisplay();
-    questionStartTime = performance.now(); 
+    // ❌ ここにあったタイマー自動スタートを撤廃（Pボタンと連動させる）
 }
 
 function updateInputDisplay() {
@@ -419,16 +412,16 @@ function triggerWrongEffects() {
     inputDisplay.classList.add('wrong-anime');
 }
 
-function calculateAndAddScore() {
-    const now = performance.now();
-    const s = (now - questionStartTime) / 1000; 
+// 🚀 プログラム実行時ではなく、物理タッチされた時刻(clickTime)をベースに計算
+function calculateAndAddScore(clickTime) {
+    const s = (clickTime - questionStartTime) / 1000; 
     const n = currentMissCount;                  
     
     const score = 10000 / ((s / 9 + 1) * (5 * n + 1));
     totalScore += Math.round(score);
 }
 
-function pressNum(numStr) {
+function pressNum(numStr, clickTime) {
     if (!isGameStarted) return;
 
     inputDigits = [inputDigits[1], numStr];
@@ -436,7 +429,7 @@ function pressNum(numStr) {
     updateInputDisplay();
 
     if (pressCount >= 2) {
-        if (isWaitingNext) checkAnswerB();
+        if (isWaitingNext) checkAnswerB(clickTime); // 物理時刻を引き渡す
         else checkAnswerA();
     }
 }
@@ -452,7 +445,7 @@ function pressComma() {
         if (inputDigits[0] === ',' && inputDigits[1] === ',') {
             triggerPass();
         } else {
-            if (isWaitingNext) checkAnswerB();
+            if (isWaitingNext) checkAnswerB(performance.now());
             else checkAnswerA();
         }
     }
@@ -514,12 +507,12 @@ function checkAnswerA() {
         currentMissCount++;
         triggerWrongEffects();
         inputDigits = ['0', '0'];
-        pressCount = 0;
+            pressCount = 0;
         updateInputDisplay();
     }
 }
 
-function checkAnswerB() {
+function checkAnswerB(clickTime) {
     if (isSkipped) return;
 
     if (inputDigits[0] !== ',' && inputDigits[1] !== ',') {
@@ -529,7 +522,7 @@ function checkAnswerB() {
             if (!hasMissedCurrentQuestion) {
                 correctCount++;
             }
-            calculateAndAddScore();
+            calculateAndAddScore(clickTime); // ★物理タッチ時刻で精密スコア加算
             triggerCorrectEffects();
             
             currentIdx++;
@@ -547,7 +540,7 @@ function checkAnswerB() {
         currentMissCount++;
         triggerWrongEffects();
         inputDigits = ['0', '0'];
-        pressCount = 0;
+            pressCount = 0;
         updateInputDisplay();
     }
 }
@@ -570,6 +563,7 @@ function pressP() {
         triggerCorrectEffects();
         currentIdx++;
         showQuestion();
+        questionStartTime = performance.now(); // 🚀 Pを押して「真に画面が切り替わった瞬間」からタイマーを回す！
     }
 }
 
