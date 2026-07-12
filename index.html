@@ -51,7 +51,6 @@
         .ready-mode .main-display { font-size: 2.2rem; }
         .skipped-mode .main-display { font-size: 3.2rem; }
         
-        /* 🚀 長押しリセット用プログレスバー */
         .gauge-container {
             width: 100%;
             height: 6px;
@@ -59,7 +58,7 @@
             border-radius: 3px;
             margin-top: 12px;
             overflow: hidden;
-            display: none; /* 通常時は非表示 */
+            display: none;
         }
         .gauge-bar {
             width: 0%;
@@ -217,7 +216,6 @@
 </div>
 
 <script>
-// 💾 localStorage 例外保護ラッパー
 function getStorageItem(key, fallback) {
     try {
         const val = localStorage.getItem(key);
@@ -255,11 +253,10 @@ let currentMissCount = 0;
 let startTime = 0;
 let endTime = 0;
 
-// 🚀 5秒長押しリセット管理用変数
 let longPressTimer = null;
 let gaugeInterval = null;
 let longPressStartTime = 0;
-const REQUIRED_PRESS_TIME = 5000; // 5秒(ms)
+const REQUIRED_PRESS_TIME = 5000; 
 
 const keyboard = document.getElementById('keyboard');
 const problemBox = document.getElementById('problem-box');
@@ -268,7 +265,6 @@ const backButton = document.getElementById('btn-back');
 const startEvent = ('ontouchstart' in window) ? 'touchstart' : 'mousedown';
 const endEvent = ('ontouchstart' in window) ? 'touchend' : 'mouseup';
 
-// 📱 画面固定ガード
 document.addEventListener('touchmove', (e) => e.preventDefault(), { passive: false });
 
 keyboard.addEventListener(startEvent, function(e) {
@@ -289,7 +285,6 @@ keyboard.addEventListener(startEvent, function(e) {
     else pressNum(action);
 });
 
-// 🚀 ◀︎ボタン専用の長押し監視（PRESS P画面のみ有効）
 backButton.addEventListener(startEvent, function(e) {
     if (isGameStarted) return;
     e.preventDefault();
@@ -307,7 +302,6 @@ backButton.addEventListener(startEvent, function(e) {
         clearInterval(gaugeInterval);
         document.getElementById('gauge-fill').style.width = '100%';
         
-        // 5秒経過時のポップアップ処理
         setTimeout(() => {
             resetGauge();
             if (confirm('ハイスコアをリセットしますか？')) {
@@ -318,7 +312,6 @@ backButton.addEventListener(startEvent, function(e) {
     }, REQUIRED_PRESS_TIME);
 });
 
-// 指が離れた、またはエリア外に出たら長押しをキャンセル
 backButton.addEventListener(endEvent, resetGauge);
 backButton.addEventListener('touchcancel', resetGauge);
 backButton.addEventListener('mouseleave', resetGauge);
@@ -452,7 +445,6 @@ function pressComma() {
         if (inputDigits[0] === ',' && inputDigits[1] === ',') {
             triggerPass();
         } else {
-            // カンマ混じりの不正な2桁入力（例:「5,」など）はミス判定
             if (isWaitingNext) checkAnswerB();
             else checkAnswerA();
         }
@@ -511,7 +503,6 @@ function checkAnswerA() {
             updateInputDisplay();
         }
     } else {
-        // カンマを含む不正な2桁の場合もミス
         hasMissedCurrentQuestion = true;
         currentMissCount++;
         triggerWrongEffects();
@@ -532,10 +523,10 @@ function checkAnswerB() {
                 correctCount++;
             }
             calculateAndAddScore();
-            
             triggerCorrectEffects();
+            
             currentIdx++;
-            setTimeout(showQuestion, 80);
+            showQuestion(); // 🚀 先行入力を妨げないよう即座に次へ遷移
         } else {
             hasMissedCurrentQuestion = true;
             currentMissCount++;
@@ -545,7 +536,6 @@ function checkAnswerB() {
             updateInputDisplay();
         }
     } else {
-        // カンマを含む不正な2桁の場合もミス
         hasMissedCurrentQuestion = true;
         currentMissCount++;
         triggerWrongEffects();
@@ -555,7 +545,6 @@ function checkAnswerB() {
     }
 }
 
-// 🚀 数字と完全にルールを統一した、1文字ずつのバックスペース処理
 function pressBack() {
     if (!isGameStarted) return;
     
@@ -573,7 +562,7 @@ function pressP() {
     if (isWaitingNext) {
         triggerCorrectEffects();
         currentIdx++;
-        setTimeout(showQuestion, 80);
+        showQuestion();
     }
 }
 
