@@ -368,7 +368,6 @@ function startFirstQuestion() {
     isSkipped = false;
     inputDigits = ['0', '0'];
     pressCount = 0;
-    questionStartTime = performance.now(); // 精密タイマーを始動
     
     // 🚀 【順序の修正】すべての準備が終わった「最後の最後」に画面を出す
     showQuestion(); 
@@ -397,6 +396,9 @@ function showQuestion() {
     document.getElementById('display-main').innerText = currentQ.number;
     
     updateInputDisplay();
+
+    // 🚀 【バグ修正】問題が表示された「その瞬間」の時刻を正しくリセットする
+    questionStartTime = performance.now(); 
 }
 
 function updateInputDisplay() {
@@ -560,7 +562,6 @@ function pressBack() {
 }
 
 function pressP() {
-    // 🚀 スタート前のPとゲーム中のPを安全に隔離
     if (!isGameStarted) {
         startFirstQuestion();
         return; 
@@ -570,7 +571,6 @@ function pressP() {
         triggerCorrectEffects();
         currentIdx++;
         showQuestion();
-        questionStartTime = performance.now(); 
     }
 }
 
