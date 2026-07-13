@@ -263,28 +263,43 @@ const problemBox = document.getElementById('problem-box');
 const inputDisplay = document.getElementById('display-input');
 const backButton = document.getElementById('btn-back');
 
-const startEvent = ('ontouchstart' in window) ? 'touchstart' : 'mousedown';
-const endEvent = ('ontouchstart' in window) ? 'touchend' : 'mouseup';
-
 document.addEventListener('touchmove', (e) => e.preventDefault(), { passive: false });
 
-// キーパッドの入力制御（二重入力防止対応）
+// 🎮 キーパッド入力の統合制御（二重入力防止・入力制限ガード）
 document.querySelectorAll('.keypad .btn').forEach(button => {
     const handlePress = function(e) {
         e.preventDefault();
         e.stopPropagation(); 
         
         const clickTime = performance.now(); 
-        
+        const action = this.getAttribute('data-action');
+        if (!action) return;
+
+        // 【仕様①】ゲーム開始前の制限（Pボタン以外を完全にガード）
+        if (!isGameStarted) {
+            if (action === 'p') {
+                this.classList.add('pop-anime');
+                pressP();
+            }
+            return;
+        }
+
+        // ボタンのアニメーション発火
         this.classList.remove('pop-anime');
         void this.offsetWidth;
         this.classList.add('pop-anime');
         
-        const action = this.getAttribute('data-action');
-        if (!action) return;
+        // 【仕様③】パス（スキップ）画面中の制限（カンマ、P以外を完全にガード）
+        if (isSkipped) {
+            if (action !== 'comma' && action !== 'p') return;
+        }
         
-        if (action === 'back' && !isGameStarted) return;
+        // 【仕様②】前半戦（pの入力待ち）のときはPボタンを無効化
+        if (isGameStarted && !isWaitingNext) {
+            if (action === 'p') return;
+        }
         
+        // すべてのガードをすり抜けた正規の入力処理
         if (action === 'back') pressBack();
         else if (action === 'comma') pressComma();
         else if (action === 'p') pressP();
@@ -298,7 +313,7 @@ document.querySelectorAll('.keypad .btn').forEach(button => {
     }
 });
 
-// ◀︎ボタン（ハイスコア削除長押し用）のイベント制御
+// ◀︎ボタン（ハイスコア削除長押し用）の独立したイベント制御
 const startLongPress = function(e) {
     if (isGameStarted) return;
     e.preventDefault();
@@ -362,7 +377,7 @@ if ('ontouchstart' in window) {
     document.getElementById('btn-restart').addEventListener('mousedown', handleRestart);
 }
 
-// 🚀 10問中「6問が2x2」「4問が2x3」になるよう厳密に抽選するロジック
+// 🚀 10問中「6問が2x2」「4問が2x3」になるよう厳密に抽出・合体・シャッフルする
 function generateGameQuestions() {
     const shuffled2x2 = [...questionBank2x2].sort(() => 0.5 - Math.random());
     const shuffled2x3 = [...questionBank2x3].sort(() => 0.5 - Math.random());
@@ -370,7 +385,6 @@ function generateGameQuestions() {
     const selected2x2 = shuffled2x2.slice(0, 6);
     const selected2x3 = shuffled2x3.slice(0, 4);
     
-    // 合体させて全10問をシャッフル
     return [...selected2x2, ...selected2x3].sort(() => 0.5 - Math.random());
 }
 
@@ -400,10 +414,6 @@ function initGame() {
 function startFirstQuestion() {
     isGameStarted = true;
     startTime = performance.now(); 
-    isWaitingNext = false; 
-    isSkipped = false;
-    inputDigits = ['0', '0'];
-    pressCount = 0;
     showQuestion(); 
 }
 
@@ -414,8 +424,9 @@ function showQuestion() {
         return;
     }
     
+    // 次の問題に進むので状態管理フラグを一斉クリーンリセット
     isWaitingNext = false;
-    isSkipped = false;
+    isSkipped = false; 
     inputDigits = ['0', '0'];
     pressCount = 0;
     remainingFactor = null;
@@ -474,8 +485,16 @@ function pressNum(numStr, clickTime) {
     }
 }
 
+// ⚙️ カンマの仕様統一（カンマ2連打でパス、1回混じりは一律ミス）
 function pressComma() {
     if (!isGameStarted) return;
+
+    // パス画面（解答表示中）の時は、カンマ入力で即座に次の問題へ
+    if (isSkipped) {
+        currentIdx++;
+        showQuestion();
+        return;
+    }
 
     inputDigits = [inputDigits[1], ','];
     pressCount++;
@@ -485,13 +504,23 @@ function pressComma() {
         if (inputDigits[0] === ',' && inputDigits[1] === ',') {
             triggerPass();
         } else {
-            if (isWaitingNext) checkAnswerB(performance.now());
-            else checkAnswerA();
+            // カンマが1回だけ混ざった2桁が確定した場合は、一律でミス処理を走らせる
+            triggerSingleCommaMiss();
         }
     }
 }
 
+function triggerSingleCommaMiss() {
+    hasMissedCurrentQuestion = true;
+    currentMissCount++;
+    triggerWrongEffects();
+    inputDigits = ['0', '0'];
+    pressCount = 0;
+    updateInputDisplay();
+}
+
 function triggerPass() {
+    // 【仕様変更対応】qの入力待ちのときは、そのまま次の問題へスキップさせる仕様（2番）を維持
     if (isWaitingNext) {
         currentIdx++;
         showQuestion();
@@ -512,36 +541,26 @@ function triggerPass() {
     problemBox.className = "problem-container skipped-mode";
     
     isWaitingNext = true;
-    isSkipped = true;
+    isSkipped = true; 
 }
 
 function checkAnswerA() {
-    if (inputDigits[0] !== ',' && inputDigits[1] !== ',') {
-        const playerAns = parseInt(inputDigits.join(''));
-        const currentQ = gameQuestions[currentIdx];
+    const playerAns = parseInt(inputDigits.join(''));
+    const currentQ = gameQuestions[currentIdx];
+    
+    if (playerAns === currentQ.p || playerAns === currentQ.q) {
+        remainingFactor = (playerAns === currentQ.p) ? currentQ.q : currentQ.p;
         
-        if (playerAns === currentQ.p || playerAns === currentQ.q) {
-            remainingFactor = (playerAns === currentQ.p) ? currentQ.q : currentQ.p;
-            
-            document.getElementById('display-sub').innerText = `${currentQ.number} = ${playerAns} ×`;
-            document.getElementById('display-main').innerText = remainingFactor;
-            
-            problemBox.className = "problem-container";
-            
-            triggerCorrectEffects();
-            isWaitingNext = true;
-            
-            inputDigits = ['0', '0'];
-            pressCount = 0;
-            updateInputDisplay(); 
-        } else {
-            hasMissedCurrentQuestion = true;
-            currentMissCount++;
-            triggerWrongEffects();
-            inputDigits = ['0', '0'];
-            pressCount = 0;
-            updateInputDisplay();
-        }
+        document.getElementById('display-sub').innerText = `${currentQ.number} = ${playerAns} ×`;
+        document.getElementById('display-main').innerText = remainingFactor;
+        
+        problemBox.className = "problem-container";
+        triggerCorrectEffects();
+        isWaitingNext = true;
+        
+        inputDigits = ['0', '0'];
+        pressCount = 0;
+        updateInputDisplay(); 
     } else {
         hasMissedCurrentQuestion = true;
         currentMissCount++;
@@ -555,26 +574,17 @@ function checkAnswerA() {
 function checkAnswerB(clickTime) {
     if (isSkipped) return;
 
-    if (inputDigits[0] !== ',' && inputDigits[1] !== ',') {
-        const playerAns = parseInt(inputDigits.join(''));
-        
-        if (playerAns === remainingFactor) {
-            if (!hasMissedCurrentQuestion) {
-                correctCount++;
-            }
-            calculateAndAddScore(clickTime); 
-            triggerCorrectEffects();
-            
-            currentIdx++;
-            showQuestion(); 
-        } else {
-            hasMissedCurrentQuestion = true;
-            currentMissCount++;
-            triggerWrongEffects();
-            inputDigits = ['0', '0'];
-            pressCount = 0;
-            updateInputDisplay();
+    const playerAns = parseInt(inputDigits.join(''));
+    
+    if (playerAns === remainingFactor) {
+        if (!hasMissedCurrentQuestion) {
+            correctCount++;
         }
+        calculateAndAddScore(clickTime); 
+        triggerCorrectEffects();
+        
+        currentIdx++;
+        showQuestion(); 
     } else {
         hasMissedCurrentQuestion = true;
         currentMissCount++;
@@ -599,6 +609,7 @@ function pressP() {
         return; 
     }
 
+    // パス画面、または後半戦の待ち状態であれば次の問題へ進む（前半戦は無効化ガード済み）
     if (isWaitingNext) {
         triggerCorrectEffects();
         currentIdx++;
