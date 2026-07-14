@@ -51,47 +51,14 @@
         .ready-mode .main-display { font-size: 2.2rem; }
         .skipped-mode .main-display { font-size: 3.2rem; }
         
-        .gauge-container {
-            width: 100%;
-            height: 6px;
-            background: #eee;
-            border-radius: 3px;
-            margin-top: 12px;
-            overflow: hidden;
-            display: none;
-        }
-        .gauge-bar {
-            width: 0%;
-            height: 100%;
-            background: #000000;
-            transition: width 0.1s linear;
-        }
+        .gauge-container { width: 100%; height: 6px; background: #eee; border-radius: 3px; margin-top: 12px; overflow: hidden; display: none; }
+        .gauge-bar { width: 0%; height: 100%; background: #000000; transition: width 0.1s linear; }
         
         .input-box { font-size: 3.2rem; text-align: center; margin: 8px 0 12px 0; letter-spacing: 6px; border-bottom: 2.5px solid #ccc; padding-bottom: 3px; color: #000; font-weight: 600; min-height: 4.5rem; line-height: 4.5rem; }
         
-        .keypad { 
-            display: grid; 
-            grid-template-columns: repeat(3, 1fr); 
-            gap: 6px; 
-            width: 100%; 
-            padding-top: 5px;
-        }
+        .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; width: 100%; padding-top: 5px; }
         
-        .btn { 
-            background: #ffffff; 
-            color: #000000; 
-            border: 2px solid #000000; 
-            padding: 16px 0; 
-            font-size: 1.8rem; 
-            cursor: pointer; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            width: 100%; 
-            outline: none; 
-            font-weight: 600; 
-            border-radius: 8px; 
-        }
+        .btn { background: #ffffff; color: #000000; border: 2px solid #000000; padding: 16px 0; font-size: 1.8rem; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 100%; outline: none; font-weight: 600; border-radius: 8px; }
         .btn-action { background: #dcdcdc; }
         
         .btn:active { background: #000000; color: #ffffff; }
@@ -129,37 +96,10 @@
         }
         
         /* リザルト画面 */
-        .result-screen { 
-            display: none; 
-            position: fixed; 
-            top: 0; 
-            left: 0; 
-            width: 100%; 
-            height: 100%; 
-            background: #ffffff; 
-            z-index: 10; 
-            flex-direction: column; 
-            align-items: center; 
-            justify-content: center; 
-            padding: 20px; 
-            text-align: center; 
-        }
+        .result-screen { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #ffffff; z-index: 10; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center; }
         
-        .huge-display-box { 
-            font-size: 2.6rem; 
-            font-weight: 600; 
-            color: #000000; 
-            margin: 12px 0; 
-            line-height: 1.2; 
-        }
-        .huge-display-box span.label { 
-            font-size: 1.2rem; 
-            color: #000000; 
-            font-weight: 600; 
-            display: block; 
-            margin-bottom: 4px; 
-            letter-spacing: 1px; 
-        }
+        .huge-display-box { font-size: 2.6rem; font-weight: 600; color: #000000; margin: 12px 0; line-height: 1.2; }
+        .huge-display-box span.label { font-size: 1.2rem; color: #000000; font-weight: 600; display: block; margin-bottom: 4px; letter-spacing: 1px; }
         
         .new-record-title { font-size: 2.2rem; font-weight: 600; color: #000000; margin: 15px 0 5px 0; letter-spacing: 0.5px; }
         
@@ -176,7 +116,6 @@
         <div class="problem-container ready-mode" id="problem-box">
             <div class="sub-display" id="display-sub"></div>
             <div class="main-display" id="display-main">PRESS P</div>
-            
             <div class="gauge-container" id="gauge-wrap">
                 <div class="gauge-bar" id="gauge-fill"></div>
             </div>
@@ -226,410 +165,190 @@ function setStorageItem(key, value) {
     try { localStorage.setItem(key, value); } catch (e) {}
 }
 
-// 4桁の半素数 全901問のデータベース
-const questionBank2x2 = [
-    {number:1003,p:17,q:59},{number:1007,p:19,q:53},{number:1027,p:13,q:79},{number:1067,p:11,q:97},{number:1073,p:29,q:37},{number:1079,p:13,q:83},{number:1081,p:23,q:47},{number:1121,p:19,q:59},{number:1139,p:17,q:67},{number:1147,p:31,q:37},{number:1157,p:13,q:89},{number:1189,p:29,q:41},{number:1207,p:17,q:71},{number:1219,p:23,q:53},{number:1247,p:29,q:43},{number:1261,p:13,q:97},{number:1271,p:31,q:41},{number:1313,p:13,q:101},{number:1333,p:31,q:43},{number:1337,p:7,q:191},{number:1343,p:17,q:79},{number:1349,p:19,q:71},{number:1357,p:23,q:59},{number:1363,p:29,q:47},{number:1387,p:19,q:73},{number:1403,p:23,q:61},{number:1417,p:13,q:109},{number:1421,p:7,q:203},{number:1457,p:31,q:47},{number:1477,p:7,q:211},{number:1513,p:17,q:89},{number:1517,p:37,q:41},{number:1537,p:29,q:53},{number:1541,p:23,q:67},{number:1577,p:19,q:83},{number:1589,p:13,q:122},{number:1591,p:37,q:43},{number:1619,p:17,q:95},{number:1633,p:23,q:71},{number:1643,p:31,q:53},{number:1649,p:17,q:97},{number:1651,p:13,q:127},{number:1669,p:19,q:87},{number:1679,p:23,q:73},{number:1711,p:29,q:59},{number:1739,p:37,q:47},{number:1763,p:41,q:43},{number:1769,p:29,q:61},{number:1793,p:11,q:163},{number:1843,p:19,q:97},{number:1849,p:43,q:43},{number:1883,p:17,q:111},{number:1891,p:31,q:61},{number:1919,p:19,q:101},{number:1927,p:41,q:47},{number:1937,p:13,q:149},{number:1943,p:29,q:67},{number:2021,p:43,q:47},{number:2033,p:19,q:107},{number:2059,p:29,q:71},{number:2077,p:31,q:67},{number:2107,p:7,q:301},{number:2117,p:29,q:73},{number:2149,p:23,q:93},{number:2173,p:41,q:53},{number:2183,p:37,q:59},{number:2201,p:31,q:71},{number:2219,p:23,q:96},{number:2231,p:23,q:97},{number:2257,p:37,q:61},{number:2263,p:31,q:73},{number:2279,p:43,q:53},{number:2303,p:47,q:49},{number:2369,p:23,q:103},{number:2413,p:19,q:127},{number:2419,p:41,q:59},{number:2449,p:31,q:79},{number:2479,p:37,q:67},{number:2491,p:47,q:53},{number:2501,p:41,q:61},{number:2537,p:43,q:59},{number:2573,p:31,q:83},{number:2603,p:23,q:113},{number:2623,p:43,q:61},{number:2627,p:37,q:71},{number:2639,p:29,q:91},{number:2669,p:47,q:56},{number:2697,p:31,q:87},{number:2701,p:37,q:73},{number:2729,p:29,q:94},{number:2747,p:41,q:67},{number:2759,p:31,q:89},{number:2773,p:47,q:59},{number:2809,p:53,q:53},{number:2813,p:29,q:97},{number:2867,p:47,q:61},{number:2881,p:43,q:67},{number:2911,p:41,q:71},{number:2923,p:37,q:79},{number:2993,p:41,q:73},{number:3007,p:31,q:97},{number:3053,p:43,q:71},{number:3071,p:37,q:83},{number:3127,p:53,q:59},{number:3139,p:43,q:73},{number:3149,p:47,q:67},{number:3193,p:31,q:103},{number:3233,p:53,q:61},{number:3239,p:41,q:79},{number:3293,p:37,q:89},{number:3317,p:47,q:71},{number:3397,p:43,q:79},{number:3403,p:41,q:83},{number:3419,p:47,q:73},{number:3431,p:31,q:110},{number:3449,p:53,q:65},{number:3479,p:47,q:74},{number:3551,p:53,q:67},{number:3569,p:43,q:83},{number:3589,p:37,q:97},{number:3599,p:59,q:61},{number:3649,p:41,q:89},{number:3713,p:47,q:79},{number:3721,p:61,q:61},{number:3763,p:53,q:71},{number:3827,p:43,q:89},{number:3869,p:53,q:73},{number:3901,p:47,q:83},{number:3953,p:59,q:67},{number:3977,p:41,q:97},{number:4017,p:47,q:85},{number:4087,p:61,q:67},{number:4133,p:53,q:78},{number:4171,p:43,q:97},{number:4183,p:47,q:89},{number:4187,p:53,q:79},{number:4219,p:61,q:69},{number:4307,p:59,q:73},{number:4399,p:53,q:83},{number:4453,p:61,q:73},{number:4489,p:67,q:67},{number:4559,p:47,q:97},{number:4661,p:59,q:79},{number:4717,p:53,q:89},{number:4819,p:61,q:79},{number:4891,p:67,q:73},{number:4897,p:59,q:83},{number:4979,p:53,q:94},{number:5063,p:61,q:83},{number:5141,p:53,q:97},{number:5251,p:67,q:79},{number:5293,p:59,q:89},{number:5329,p:73,q:73},{number:5429,p:61,q:89},{number:5597,p:67,q:83},{number:5609,p:71,q:79},{number:5723,p:59,q:97},{number:5767,p:71,q:83},{number:5893,p:71,q:83},{number:5917,p:61,q:97},{number:5963,p:67,q:89},{number:6019,p:73,q:82},{number:6179,p:73,q:84},{number:6233,p:71,q:87},{number:6319,p:71,q:89},{number:6497,p:73,q:89},{number:6499,p:67,q:97},{number:6557,p:79,q:83},{number:6643,p:73,q:91},{number:6757,p:71,q:95},{number:6887,p:71,q:97},{number:7031,p:79,q:89},{number:7081,p:73,q:97},{number:7211,p:79,q:91},{number:7397,p:83,q:89},{number:7519,p:73,q:103},{number:7663,p:79,q:97},{number:7889,p:83,q:95},{number:8051,p:83,q:97},{number:8281,p:91,q:91},{number:8419,p:83,q:101},{number:8633,p:89,q:97},{number:8827,p:89,q:99},{number:9409,p:97,q:97}
+const questionBank = [
+    {number:1067,p:11,q:97},{number:1111,p:11,q:101},{number:1133,p:11,q:103},{number:1177,p:11,q:107},{number:1199,p:11,q:109},{number:1243,p:11,q:113},{number:1397,p:11,q:127},{number:1441,p:11,q:131},{number:1507,p:11,q:137},{number:1529,p:11,q:139},{number:1639,p:11,q:149},{number:1661,p:11,q:151},{number:1727,p:11,q:157},{number:1793,p:11,q:163},{number:1837,p:11,q:167},{number:1903,p:11,q:173},{number:1969,p:11,q:179},{number:1991,p:11,q:181},{number:2101,p:11,q:191},{number:2123,p:11,q:193},{number:2167,p:11,q:197},{number:2189,p:11,q:199},{number:2321,p:11,q:211},{number:2453,p:11,q:223},{number:2497,p:11,q:227},{number:2519,p:11,q:229},{number:2563,p:11,q:233},{number:2629,p:11,q:239},{number:2651,p:11,q:241},{number:2761,p:11,q:251},{number:2827,p:11,q:257},{number:2893,p:11,q:263},{number:2959,p:11,q:269},{number:2981,p:11,q:271},{number:3047,p:11,q:277},{number:3091,p:11,q:281},{number:3113,p:11,q:283},{number:3223,p:11,q:293},{number:3377,p:11,q:307},{number:3421,p:11,q:311},{number:3443,p:11,q:313},{number:3487,p:11,q:317},{number:3641,p:11,q:331},{number:3707,p:11,q:337},{number:3817,p:11,q:347},{number:3839,p:11,q:349},{number:3883,p:11,q:353},{number:3949,p:11,q:359},{number:4037,p:11,q:367},{number:4103,p:11,q:373},{number:4169,p:11,q:379},{number:4213,p:11,q:383},{number:4279,p:11,q:389},{number:4367,p:11,q:397},{number:4411,p:11,q:401},{number:4499,p:11,q:409},{number:4609,p:11,q:419},{number:4631,p:11,q:421},{number:4741,p:11,q:431},{number:4763,p:11,q:433},{number:4829,p:11,q:439},{number:4873,p:11,q:443},{number:4939,p:11,q:449},{number:5027,p:11,q:457},{number:5071,p:11,q:461},{number:5093,p:11,q:463},{number:5137,p:11,q:467},{number:5269,p:11,q:479},{number:5357,p:11,q:487},{number:5401,p:11,q:491},{number:5489,p:11,q:499},{number:5533,p:11,q:503},{number:5599,p:11,q:509},{number:5731,p:11,q:521},{number:5753,p:11,q:523},{number:5951,p:11,q:541},{number:6017,p:11,q:547},{number:6127,p:11,q:557},{number:6193,p:11,q:563},{number:6259,p:11,q:569},{number:6281,p:11,q:571},{number:6347,p:11,q:577},{number:6457,p:11,q:587},{number:6523,p:11,q:593},{number:6589,p:11,q:599},{number:6611,p:11,q:601},{number:6677,p:11,q:607},{number:6743,p:11,q:613},{number:6787,p:11,q:617},{number:6809,p:11,q:619},{number:6941,p:11,q:631},{number:7051,p:11,q:641},{number:7073,p:11,q:643},{number:7117,p:11,q:647},{number:7183,p:11,q:653},{number:7249,p:11,q:659},{number:7271,p:11,q:661},{number:7403,p:11,q:673},{number:7447,p:11,q:677},{number:7513,p:11,q:683},{number:7601,p:11,q:691},{number:7711,p:11,q:701},{number:7799,p:11,q:709},{number:7909,p:11,q:719},{number:7997,p:11,q:727},{number:8063,p:11,q:733},{number:8129,p:11,q:739},{number:8173,p:11,q:743},{number:8261,p:11,q:751},{number:8327,p:11,q:757},{number:8371,p:11,q:761},{number:8459,p:11,q:769},{number:8503,p:11,q:773},{number:8657,p:11,q:787},{number:8767,p:11,q:797},{number:8899,p:11,q:809},{number:8921,p:11,q:811},{number:9031,p:11,q:821},{number:9053,p:11,q:823},{number:9097,p:11,q:827},{number:9119,p:11,q:829},{number:9229,p:11,q:839},{number:9383,p:11,q:853},{number:9427,p:11,q:857},{number:9449,p:11,q:859},{number:9493,p:11,q:863},{number:9647,p:11,q:877},{number:9691,p:11,q:881},{number:9713,p:11,q:883},{number:9757,p:11,q:887},{number:9977,p:11,q:907},{number:1027,p:13,q:79},{number:1079,p:13,q:83},{number:1157,p:13,q:89},{number:1261,p:13,q:97},{number:1313,p:13,q:101},{number:1339,p:13,q:103},{number:1391,p:13,q:107},{number:1417,p:13,q:109},{number:1469,p:13,q:113},{number:1651,p:13,q:127},{number:1703,p:13,q:131},{number:1781,p:13,q:137},{number:1807,p:13,q:139},{number:1937,p:13,q:149},{number:1963,p:13,q:151},{number:2041,p:13,q:157},{number:2119,p:13,q:163},{number:2171,p:13,q:167},{number:2249,p:13,q:173},{number:2327,p:13,q:179},{number:2353,p:13,q:181},{number:2483,p:13,q:191},{number:2509,p:13,q:193},{number:2561,p:13,q:197},{number:2587,p:13,q:199},{number:2743,p:13,q:211},{number:2899,p:13,q:223},{number:2951,p:13,q:227},{number:2977,p:13,q:229},{number:3029,p:13,q:233},{number:3107,p:13,q:239},{number:3133,p:13,q:241},{number:3263,p:13,q:251},{number:3341,p:13,q:257},{number:3419,p:13,q:263},{number:3497,p:13,q:269},{number:3523,p:13,q:271},{number:3601,p:13,q:277},{number:3653,p:13,q:281},{number:3679,p:13,q:283},{number:3809,p:13,q:293},{number:3991,p:13,q:307},{number:4043,p:13,q:311},{number:4069,p:13,q:313},{number:4121,p:13,q:317},{number:4303,p:13,q:331},{number:4381,p:13,q:337},{number:4511,p:13,q:347},{number:4537,p:13,q:349},{number:4589,p:13,q:353},{number:4667,p:13,q:359},{number:4771,p:13,q:367},{number:4849,p:13,q:373},{number:4927,p:13,q:379},{number:4979,p:13,q:383},{number:5057,p:13,q:389},{number:5161,p:13,q:397},{number:5213,p:13,q:401},{number:5317,p:13,q:409},{number:5447,p:13,q:419},{number:5473,p:13,q:421},{number:5603,p:13,q:431},{number:5629,p:13,q:433},{number:5707,p:13,q:439},{number:5759,p:13,q:443},{number:5837,p:13,q:449},{number:5941,p:13,q:457},{number:5993,p:13,q:461},{number:6019,p:13,q:463},{number:6071,p:13,q:467},{number:6227,p:13,q:479},{number:6331,p:13,q:487},{number:6383,p:13,q:491},{number:6487,p:13,q:499},{number:6539,p:13,q:503},{number:6617,p:13,q:509},{number:6773,p:13,q:521},{number:6799,p:13,q:523},{number:7033,p:13,q:541},{number:7111,p:13,q:547},{number:7241,p:13,q:557},{number:7319,p:13,q:563},{number:7397,p:13,q:569},{number:7423,p:13,q:571},{number:7501,p:13,q:577},{number:7631,p:13,q:587},{number:7709,p:13,q:593},{number:7787,p:13,q:599},{number:7813,p:13,q:601},{number:7891,p:13,q:607},{number:7969,p:13,q:613},{number:8021,p:13,q:617},{number:8047,p:13,q:619},{number:8203,p:13,q:631},{number:8333,p:13,q:641},{number:8359,p:13,q:643},{number:8411,p:13,q:647},{number:8489,p:13,q:653},{number:8567,p:13,q:659},{number:8593,p:13,q:661},{number:8749,p:13,q:673},{number:8801,p:13,q:677},{number:8879,p:13,q:683},{number:8983,p:13,q:691},{number:9113,p:13,q:701},{number:9217,p:13,q:709},{number:9347,p:13,q:719},{number:9451,p:13,q:727},{number:9529,p:13,q:733},{number:9607,p:13,q:739},{number:9659,p:13,q:743},{number:9763,p:13,q:751},{number:9841,p:13,q:757},{number:9893,p:13,q:761},{number:9997,p:13,q:769},{number:1003,p:17,q:59},{number:1037,p:17,q:61},{number:1139,p:17,q:67},{number:1207,p:17,q:71},{number:1241,p:17,q:73},{number:1343,p:17,q:79},{number:1411,p:17,q:83},{number:1513,p:17,q:89},{number:1649,p:17,q:97},{number:1717,p:17,q:101},{number:1751,p:17,q:103},{number:1819,p:17,q:107},{number:1853,p:17,q:109},{number:1921,p:17,q:113},{number:2159,p:17,q:127},{number:2227,p:17,q:131},{number:2329,p:17,q:137},{number:2363,p:17,q:139},{number:2533,p:17,q:149},{number:2567,p:17,q:151},{number:2669,p:17,q:157},{number:2771,p:17,q:163},{number:2839,p:17,q:167},{number:2941,p:17,q:173},{number:3043,p:17,q:179},{number:3077,p:17,q:181},{number:3247,p:17,q:191},{number:3281,p:17,q:193},{number:3349,p:17,q:197},{number:3383,p:17,q:199},{number:3587,p:17,q:211},{number:3791,p:17,q:223},{number:3859,p:17,q:227},{number:3893,p:17,q:229},{number:3961,p:17,q:233},{number:4063,p:17,q:239},{number:4097,p:17,q:241},{number:4267,p:17,q:251},{number:4369,p:17,q:257},{number:4471,p:17,q:263},{number:4573,p:17,q:269},{number:4607,p:17,q:271},{number:4709,p:17,q:277},{number:4777,p:17,q:281},{number:4811,p:17,q:283},{number:4981,p:17,q:293},{number:5219,p:17,q:307},{number:5287,p:17,q:311},{number:5321,p:17,q:313},{number:5389,p:17,q:317},{number:5627,p:17,q:331},{number:5729,p:17,q:337},{number:5899,p:17,q:347},{number:5933,p:17,q:349},{number:6001,p:17,q:353},{number:6103,p:17,q:359},{number:6239,p:17,q:367},{number:6341,p:17,q:373},{number:6443,p:17,q:379},{number:6511,p:17,q:383},{number:6613,p:17,q:389},{number:6749,p:17,q:397},{number:6817,p:17,q:401},{number:6953,p:17,q:409},{number:7123,p:17,q:419},{number:7157,p:17,q:421},{number:7327,p:17,q:431},{number:7361,p:17,q:433},{number:7463,p:17,q:439},{number:7531,p:17,q:443},{number:7633,p:17,q:449},{number:7769,p:17,q:457},{number:7837,p:17,q:461},{number:7871,p:17,q:463},{number:7939,p:17,q:467},{number:8143,p:17,q:479},{number:8279,p:17,q:487},{number:8347,p:17,q:491},{number:8483,p:17,q:499},{number:8551,p:17,q:503},{number:8653,p:17,q:509},{number:8857,p:17,q:521},{number:8891,p:17,q:523},{number:9197,p:17,q:541},{number:9299,p:17,q:547},{number:9469,p:17,q:557},{number:9571,p:17,q:563},{number:9673,p:17,q:569},{number:9707,p:17,q:571},{number:9809,p:17,q:577},{number:9979,p:17,q:587},{number:1007,p:19,q:53},{number:1121,p:19,q:59},{number:1159,p:19,q:61},{number:1273,p:19,q:67},{number:1349,p:19,q:71},{number:1387,p:19,q:73},{number:1501,p:19,q:79},{number:1577,p:19,q:83},{number:1691,p:19,q:89},{number:1843,p:19,q:97},{number:1919,p:19,q:101},{number:1957,p:19,q:103},{number:2033,p:19,q:107},{number:2071,p:19,q:109},{number:2147,p:19,q:113},{number:2413,p:19,q:127},{number:2489,p:19,q:131},{number:2603,p:19,q:137},{number:2641,p:19,q:139},{number:2831,p:19,q:149},{number:2869,p:19,q:151},{number:2983,p:19,q:157},{number:3097,p:19,q:163},{number:3173,p:19,q:167},{number:3287,p:19,q:173},{number:3401,p:19,q:179},{number:3439,p:19,q:181},{number:3629,p:19,q:191},{number:3667,p:19,q:193},{number:3743,p:19,q:197},{number:3781,p:19,q:199},{number:4009,p:19,q:211},{number:4237,p:19,q:223},{number:4313,p:19,q:227},{number:4351,p:19,q:229},{number:4427,p:19,q:233},{number:4541,p:19,q:239},{number:4579,p:19,q:241},{number:4769,p:19,q:251},{number:4883,p:19,q:257},{number:4997,p:19,q:263},{number:5111,p:19,q:269},{number:5149,p:19,q:271},{number:5263,p:19,q:277},{number:5339,p:19,q:281},{number:5377,p:19,q:283},{number:5567,p:19,q:293},{number:5833,p:19,q:307},{number:5909,p:19,q:311},{number:5947,p:19,q:313},{number:6023,p:19,q:317},{number:6289,p:19,q:331},{number:6403,p:19,q:337},{number:6593,p:19,q:347},{number:6631,p:19,q:349},{number:6707,p:19,q:353},{number:6821,p:19,q:359},{number:6973,p:19,q:367},{number:7087,p:19,q:373},{number:7201,p:19,q:379},{number:7277,p:19,q:383},{number:7391,p:19,q:389},{number:7543,p:19,q:397},{number:7619,p:19,q:401},{number:7771,p:19,q:409},{number:7961,p:19,q:419},{number:7999,p:19,q:421},{number:8189,p:19,q:431},{number:8227,p:19,q:433},{number:8341,p:19,q:439},{number:8417,p:19,q:443},{number:8531,p:19,q:449},{number:8683,p:19,q:457},{number:8759,p:19,q:461},{number:8797,p:19,q:463},{number:8873,p:19,q:467},{number:9101,p:19,q:479},{number:9253,p:19,q:487},{number:9329,p:19,q:491},{number:9481,p:19,q:499},{number:9557,p:19,q:503},{number:9671,p:19,q:509},{number:9899,p:19,q:521},{number:9937,p:19,q:523},{number:1219,p:23,q:53},{number:1357,p:23,q:59},{number:1403,p:23,q:61},{number:1541,p:23,q:67},{number:1633,p:23,q:71},{number:1679,p:23,q:73},{number:1817,p:23,q:79},{number:1909,p:23,q:83},{number:2047,p:23,q:89},{number:2231,p:23,q:97},{number:2323,p:23,q:101},{number:2369,p:23,q:103},{number:2461,p:23,q:107},{number:2507,p:23,q:109},{number:2599,p:23,q:113},{number:2921,p:23,q:127},{number:3013,p:23,q:131},{number:3151,p:23,q:137},{number:3197,p:23,q:139},{number:3427,p:23,q:149},{number:3473,p:23,q:151},{number:3611,p:23,q:157},{number:3749,p:23,q:163},{number:3841,p:23,q:167},{number:3979,p:23,q:173},{number:4117,p:23,q:179},{number:4163,p:23,q:181},{number:4393,p:23,q:191},{number:4439,p:23,q:193},{number:4531,p:23,q:197},{number:4577,p:23,q:199},{number:4853,p:23,q:211},{number:5129,p:23,q:223},{number:5221,p:23,q:227},{number:5267,p:23,q:229},{number:5359,p:23,q:233},{number:5497,p:23,q:239},{number:5543,p:23,q:241},{number:5773,p:23,q:251},{number:5911,p:23,q:257},{number:6049,p:23,q:263},{number:6187,p:23,q:269},{number:6233,p:23,q:271},{number:6371,p:23,q:277},{number:6463,p:23,q:281},{number:6509,p:23,q:283},{number:6739,p:23,q:293},{number:7061,p:23,q:307},{number:7153,p:23,q:311},{number:7199,p:23,q:313},{number:7291,p:23,q:317},{number:7613,p:23,q:331},{number:7751,p:23,q:337},{number:7981,p:23,q:347},{number:8027,p:23,q:349},{number:8119,p:23,q:353},{number:8257,p:23,q:359},{number:8441,p:23,q:367},{number:8579,p:23,q:373},{number:8717,p:23,q:379},{number:8809,p:23,q:383},{number:8947,p:23,q:389},{number:9131,p:23,q:397},{number:9223,p:23,q:401},{number:9407,p:23,q:409},{number:9637,p:23,q:419},{number:9683,p:23,q:421},{number:9913,p:23,q:431},{number:9959,p:23,q:433},{number:1537,p:29,q:53},{number:1711,p:29,q:59},{number:1769,p:29,q:61},{number:1943,p:29,q:67},{number:2059,p:29,q:71},{number:2117,p:29,q:73},{number:2291,p:29,q:79},{number:2407,p:29,q:83},{number:2581,p:29,q:89},{number:2813,p:29,q:97},{number:2929,p:29,q:101},{number:2987,p:29,q:103},{number:3103,p:29,q:107},{number:3161,p:29,q:109},{number:3277,p:29,q:113},{number:3683,p:29,q:127},{number:3799,p:29,q:131},{number:3973,p:29,q:137},{number:4031,p:29,q:139},{number:4321,p:29,q:149},{number:4379,p:29,q:151},{number:4553,p:29,q:157},{number:4727,p:29,q:163},{number:4843,p:29,q:167},{number:5017,p:29,q:173},{number:5191,p:29,q:179},{number:5249,p:29,q:181},{number:5539,p:29,q:191},{number:5597,p:29,q:193},{number:5713,p:29,q:197},{number:5771,p:29,q:199},{number:6119,p:29,q:211},{number:6467,p:29,q:223},{number:6583,p:29,q:227},{number:6641,p:29,q:229},{number:6757,p:29,q:233},{number:6931,p:29,q:239},{number:6989,p:29,q:241},{number:7279,p:29,q:251},{number:7453,p:29,q:257},{number:7627,p:29,q:263},{number:7801,p:29,q:269},{number:7859,p:29,q:271},{number:8033,p:29,q:277},{number:8149,p:29,q:281},{number:8207,p:29,q:283},{number:8497,p:29,q:293},{number:8903,p:29,q:307},{number:9019,p:29,q:311},{number:9077,p:29,q:313},{number:9193,p:29,q:317},{number:9599,p:29,q:331},{number:9773,p:29,q:337},{number:1643,p:31,q:53},{number:1829,p:31,q:59},{number:1891,p:31,q:61},{number:2077,p:31,q:67},{number:2201,p:31,q:71},{number:2263,p:31,q:73},{number:2449,p:31,q:79},{number:2573,p:31,q:83},{number:2759,p:31,q:89},{number:3007,p:31,q:97},{number:3131,p:31,q:101},{number:3193,p:31,q:103},{number:3317,p:31,q:107},{number:3379,p:31,q:109},{number:3503,p:31,q:113},{number:3937,p:31,q:127},{number:4061,p:31,q:131},{number:4247,p:31,q:137},{number:4309,p:31,q:139},{number:4619,p:31,q:149},{number:4681,p:31,q:151},{number:4867,p:31,q:157},{number:5053,p:31,q:163},{number:5177,p:31,q:167},{number:5363,p:31,q:173},{number:5549,p:31,q:179},{number:5611,p:31,q:181},{number:5921,p:31,q:191},{number:5983,p:31,q:193},{number:6107,p:31,q:197},{number:6169,p:31,q:199},{number:6541,p:31,q:211},{number:6913,p:31,q:223},{number:7037,p:31,q:227},{number:7099,p:31,q:229},{number:7223,p:31,q:233},{number:7409,p:31,q:239},{number:7471,p:31,q:241},{number:7781,p:31,q:251},{number:7967,p:31,q:257},{number:8153,p:31,q:263},{number:8339,p:31,q:269},{number:8401,p:31,q:271},{number:8587,p:31,q:277},{number:8711,p:31,q:281},{number:8773,p:31,q:283},{number:9083,p:31,q:293},{number:9517,p:31,q:307},{number:9641,p:31,q:311},{number:9703,p:31,q:313},{number:9827,p:31,q:317},{number:1961,p:37,q:53},{number:2183,p:37,q:59},{number:2257,p:37,q:61},{number:2479,p:37,q:67},{number:2627,p:37,q:71},{number:2701,p:37,q:73},{number:2923,p:37,q:79},{number:3071,p:37,q:83},{number:3293,p:37,q:89},{number:3589,p:37,q:97},{number:3737,p:37,q:101},{number:3811,p:37,q:103},{number:3959,p:37,q:107},{number:4033,p:37,q:109},{number:4181,p:37,q:113},{number:4699,p:37,q:127},{number:4847,p:37,q:131},{number:5069,p:37,q:137},{number:5143,p:37,q:139},{number:5513,p:37,q:149},{number:5587,p:37,q:151},{number:5809,p:37,q:157},{number:6031,p:37,q:163},{number:6179,p:37,q:167},{number:6401,p:37,q:173},{number:6623,p:37,q:179},{number:6697,p:37,q:181},{number:7067,p:37,q:191},{number:7141,p:37,q:193},{number:7289,p:37,q:197},{number:7363,p:37,q:199},{number:7807,p:37,q:211},{number:8251,p:37,q:223},{number:8399,p:37,q:227},{number:8463,p:37,q:229},{number:8621,p:37,q:233},{number:8843,p:37,q:239},{number:8917,p:37,q:241},{number:9287,p:37,q:251},{number:9509,p:37,q:257},{number:9731,p:37,q:263},{number:9953,p:37,q:269},{number:2173,p:41,q:53},{number:2419,p:41,q:59},{number:2501,p:41,q:61},{number:2747,p:41,q:67},{number:2911,p:41,q:71},{number:2993,p:41,q:73},{number:3239,p:41,q:79},{number:3403,p:41,q:83},{number:3649,p:41,q:89},{number:3977,p:41,q:97},{number:4141,p:41,q:101},{number:4223,p:41,q:103},{number:4387,p:41,q:107},{number:4469,p:41,q:109},{number:4633,p:41,q:113},{number:5207,p:41,q:127},{number:5371,p:41,q:131},{number:5617,p:41,q:137},{number:5699,p:41,q:139},{number:6109,p:41,q:149},{number:6191,p:41,q:151},{number:6437,p:41,q:157},{number:6683,p:41,q:163},{number:6847,p:41,q:167},{number:7093,p:41,q:173},{number:7339,p:41,q:179},{number:7421,p:41,q:181},{number:7831,p:41,q:191},{number:7913,p:41,q:193},{number:8077,p:41,q:197},{number:8159,p:41,q:199},{number:8651,p:41,q:211},{number:9143,p:41,q:223},{number:9307,p:41,q:227},{number:9389,p:41,q:229},{number:9553,p:41,q:233},{number:9799,p:41,q:239},{number:9881,p:41,q:241},{number:2279,p:43,q:53},{number:2537,p:43,q:59},{number:2623,p:43,q:61},{number:2881,p:43,q:67},{number:3053,p:43,q:71},{number:3139,p:43,q:73},{number:3397,p:43,q:79},{number:3569,p:43,q:83},{number:3827,p:43,q:89},{number:4171,p:43,q:97},{number:4343,p:43,q:101},{number:4429,p:43,q:103},{number:4601,p:43,q:107},{number:4687,p:43,q:109},{number:4859,p:43,q:113},{number:5461,p:43,q:127},{number:5633,p:43,q:131},{number:5891,p:43,q:137},{number:5977,p:43,q:139},{number:6407,p:43,q:149},{number:6493,p:43,q:151},{number:6751,p:43,q:157},{number:7009,p:43,q:163},{number:7181,p:43,q:167},{number:7439,p:43,q:173},{number:7697,p:43,q:179},{number:7783,p:43,q:181},{number:8213,p:43,q:191},{number:8299,p:43,q:193},{number:8471,p:43,q:197},{number:8557,p:43,q:199},{number:9073,p:43,q:211},{number:9589,p:43,q:223},{number:9761,p:43,q:227},{number:9847,p:43,q:229},{number:2491,p:47,q:53},{number:2773,p:47,q:59},{number:2867,p:47,q:61},{number:3149,p:47,q:67},{number:3317,p:47,q:71},{number:3419,p:47,q:73},{number:3713,p:47,q:79},{number:3901,p:47,q:83},{number:4183,p:47,q:89},{number:4559,p:47,q:97},{number:4747,p:47,q:101},{number:4841,p:47,q:103},{number:5029,p:47,q:107},{number:5123,p:47,q:109},{number:5311,p:47,q:113},{number:5969,p:47,q:127},{number:6157,p:47,q:131},{number:6439,p:47,q:137},{number:6533,p:47,q:139},{number:7003,p:47,q:149},{number:7097,p:47,q:151},{number:7379,p:47,q:157},{number:7661,p:47,q:163},{number:7849,p:47,q:167},{number:8131,p:47,q:173},{number:8413,p:47,q:179},{number:8507,p:47,q:181},{number:8977,p:47,q:191},{number:9071,p:47,q:193},{number:9259,p:47,q:197},{number:9353,p:47,q:199},{number:9917,p:47,q:211},{number:2809,p:53,q:53},{number:3127,p:53,q:59},{number:3233,p:53,q:61},{number:3551,p:53,q:67},{number:3763,p:53,q:71},{number:3869,p:53,q:73},{number:4187,p:53,q:79},{number:4399,p:53,q:83},{number:4717,p:53,q:89},{number:5141,p:53,q:97},{number:5353,p:53,q:101},{number:5459,p:53,q:103},{number:5671,p:53,q:107},{number:5777,p:53,q:109},{number:5989,p:53,q:113},{number:6731,p:53,q:127},{number:6943,p:53,q:131},{number:7261,p:53,q:137},{number:7367,p:53,q:139},{number:7897,p:53,q:149},{number:8003,p:53,q:151},{number:8321,p:53,q:157},{number:8639,p:53,q:163},{number:8851,p:53,q:167},{number:9169,p:53,q:173},{number:9487,p:53,q:179},{number:9593,p:53,q:181},{number:3481,p:59,q:59},{number:3599,p:59,q:61},{number:3953,p:59,q:67},{number:4189,p:59,q:71},{number:4307,p:59,q:73},{number:4661,p:59,q:79},{number:4897,p:59,q:83},{number:5251,p:59,q:89},{number:5723,p:59,q:97},{number:5959,p:59,q:101},{number:6077,p:59,q:103},{number:6313,p:59,q:107},{number:6431,p:59,q:109},{number:6667,p:59,q:113},{number:7493,p:59,q:127},{number:7729,p:59,q:131},{number:8083,p:59,q:137},{number:8201,p:59,q:139},{number:8791,p:59,q:149},{number:8909,p:59,q:151},{number:9263,p:59,q:157},{number:9617,p:59,q:163},{number:9853,p:59,q:167},{number:3721,p:61,q:61},{number:4087,p:61,q:67},{number:4331,p:61,q:71},{number:4453,p:61,q:73},{number:4819,p:61,q:79},{number:5063,p:61,q:83},{number:5429,p:61,q:89},{number:5917,p:61,q:97},{number:6161,p:61,q:101},{number:6283,p:61,q:103},{number:6527,p:61,q:107},{number:6649,p:61,q:109},{number:6893,p:61,q:113},{number:7747,p:61,q:127},{number:7991,p:61,q:131},{number:8357,p:61,q:137},{number:8479,p:61,q:139},{number:9089,p:61,q:149},{number:9211,p:61,q:151},{number:9577,p:61,q:157},{number:9943,p:61,q:163},{number:4489,p:67,q:67},{number:4757,p:67,q:71},{number:4891,p:67,q:73},{number:5293,p:67,q:79},{number:5561,p:67,q:83},{number:5963,p:67,q:89},{number:6499,p:67,q:97},{number:6767,p:67,q:101},{number:6901,p:67,q:103},{number:7169,p:67,q:107},{number:7303,p:67,q:109},{number:7571,p:67,q:113},{number:8509,p:67,q:127},{number:8777,p:67,q:131},{number:9179,p:67,q:137},{number:9313,p:67,q:139},{number:9983,p:67,q:149},{number:5041,p:71,q:71},{number:5183,p:71,q:73},{number:5609,p:71,q:79},{number:5893,p:71,q:83},{number:6319,p:71,q:89},{number:6887,p:71,q:97},{number:7171,p:71,q:101},{number:7313,p:71,q:103},{number:7597,p:71,q:107},{number:7739,p:71,q:109},{number:8023,p:71,q:113},{number:9017,p:71,q:127},{number:9301,p:71,q:131},{number:9727,p:71,q:137},{number:9869,p:71,q:139},{number:5329,p:73,q:73},{number:5767,p:73,q:79},{number:6059,p:73,q:83},{number:6497,p:73,q:89},{number:7081,p:73,q:97},{number:7373,p:73,q:101},{number:7519,p:73,q:103},{number:7811,p:73,q:107},{number:7957,p:73,q:109},{number:8249,p:73,q:113},{number:9271,p:73,q:127},{number:9563,p:73,q:131},{number:6241,p:79,q:79},{number:6557,p:79,q:83},{number:7031,p:79,q:89},{number:7663,p:79,q:97},{number:7979,p:79,q:101},{number:8137,p:79,q:103},{number:8453,p:79,q:107},{number:8611,p:79,q:109},{number:8927,p:79,q:113},{number:6889,p:83,q:83},{number:7387,p:83,q:89},{number:8051,p:83,q:97},{number:8383,p:83,q:101},{number:8549,p:83,q:103},{number:8881,p:83,q:107},{number:9047,p:83,q:109},{number:9379,p:83,q:113},{number:7921,p:89,q:89},{number:8633,p:89,q:97},{number:8989,p:89,q:101},{number:9167,p:89,q:103},{number:9523,p:89,q:107},{number:9701,p:89,q:109},{number:9409,p:97,q:97},{number:9797,p:97,q:101},{number:9991,p:97,q:103}
 ];
 
-const questionBank2x3 = [
-    {number:1111,p:11,q:101},{number:1133,p:11,q:103},{number:1177,p:11,q:107},{number:1199,p:11,q:109},{number:1243,p:11,q:113},{number:1309,p:11,q:119},{number:1313,p:13,q:101},{number:1331,p:11,q:121},{number:1339,p:13,q:103},{number:1391,p:13,q:107},{number:1397,p:11,q:127},{number:1417,p:13,q:109},{number:1441,p:11,q:131},{number:1469,p:13,q:113},{number:1507,p:11,q:137},{number:1529,p:11,q:139},{number:1617,p:11,q:147},{number:1639,p:11,q:149},{number:1651,p:13,q:127},{number:1703,p:13,q:131},{number:1717,p:17,q:101},{number:1727,p:11,q:157},{number:1751,p:17,q:103},{number:1771,p:11,q:161},{number:1781,p:13,q:137},{number:1807,p:13,q:139},{number:1819,p:17,q:107},{number:1837,p:11,q:167},{number:1853,p:17,q:109},{number:1859,p:11,q:169},{number:1919,p:19,q:101},{number:1921,p:17,q:113},{number:1937,p:13,q:149},{number:1957,p:19,q:103},{number:1969,p:11,q:179},{number:1991,p:11,q:181},{number:2023,p:17,q:119},{number:2033,p:19,q:107},{number:2041,p:13,q:157},{number:2057,p:11,q:187},{number:2071,p:19,q:109},{number:2093,p:13,q:161},{number:2101,p:11,q:191},{number:2123,p:11,q:193},{number:2147,p:17,q:127},{number:2159,p:19,q:113},{number:2167,p:11,q:197},{number:2189,p:11,q:199},{number:2197,p:13,q:169},{number:2213,p:11,q:201},{number:2227,p:17,q:131},{number:2261,p:17,q:133},{number:2323,p:23,q:101},{number:2327,p:13,q:179},{number:2329,p:17,q:137},{number:2343,p:11,q:213},{number:2353,p:13,q:181},{number:2363,p:17,q:139},{number:2369,p:23,q:103},{number:2413,p:19,q:127},{number:2431,p:11,q:221},{number:2447,p:17,q:144},{number:2461,p:23,q:107},{number:2489,p:19,q:131},{number:2507,p:23,q:109},{number:2533,p:13,q:195},{number:2549,p:19,q:134},{number:2561,p:13,q:197},{number:2587,p:13,q:199},{number:2599,p:23,q:113},{number:2607,p:11,q:237},{number:2629,p:19,q:138},{number:2633,p:17,q:154},{number:2669,p:17,q:157},{number:2699,p:11,q:245},{number:2717,p:11,q:247},{number:2737,p:23,q:119},{number:2771,p:17,q:163},{number:2821,p:23,q:122},{number:2839,p:11,q:258},{number:2849,p:19,q:150},{number:2873,p:13,q:221},{number:2917,p:11,q:265},{number:2921,p:23,q:127},{number:2929,p:29,q:101},{number:2951,p:13,q:227},{number:2977,p:13,q:229},{number:2987,p:29,q:103},{number:3013,p:23,q:131},{number:3031,p:19,q:159},{number:3059,p:23,q:133},{number:3077,p:17,q:181},{number:3103,p:29,q:107},{number:3127,p:23,q:136},{number:3151,p:23,q:137},{number:3161,p:29,q:109},{number:3197,p:23,q:139},{number:3211,p:13,q:247},{number:3223,p:11,q:293},{number:3277,p:29,q:113},{number:3281,p:17,q:193},{number:3349,p:17,q:197},{number:3377,p:11,q:307},{number:3383,p:17,q:199},{number:3419,p:31,q:110},{number:3427,p:31,q:110},{number:3449,p:31,q:111},{number:3451,p:23,q:150},{number:3473,p:13,q:267},{number:3479,p:31,q:112},{number:3497,p:11,q:317},{number:3509,p:29,q:121},{number:3511,p:23,q:152},{number:3533,p:13,q:271},{number:3599,p:31,q:116},{number:3611,p:23,q:157},{number:3661,p:11,q:332},{number:3677,p:13,q:282},{number:3689,p:31,q:119},{number:3703,p:23,q:161},{number:3751,p:11,q:341},{number:3767,p:29,q:129},{number:3817,p:29,q:131},{number:3841,p:23,q:167},{number:3869,p:31,q:124},{number:3887,p:23,q:169},{number:3937,p:31,q:127},{number:3973,p:29,q:137},{number:4031,p:29,q:139},{number:4057,p:37,q:109},{number:4061,p:31,q:131},{number:4069,p:13,q:313},{number:4081,p:23,q:177},{number:4117,p:23,q:179},{number:4123,p:37,q:111},{number:4141,p:41,q:101},{number:4163,p:23,q:181},{number:4189,p:13,q:322},{number:4223,p:41,q:103},{number:4247,p:31,q:137},{number:4277,p:37,q:115},{number:4307,p:37,q:116},{number:4309,p:31,q:139},{number:4321,p:29,q:149},{number:4331,p:23,q:188},{number:4343,p:37,q:117},{number:4387,p:41,q:107},{number:4403,p:37,q:119},{number:4433,p:23,q:192},{number:4447,p:23,q:193},{number:4469,p:41,q:109},{number:4531,p:23,q:197},{number:4543,p:29,q:156},{number:4559,p:37,q:123},{number:4577,p:23,q:199},{number:4631,p:41,q:113},{number:4657,p:31,q:150},{number:4669,p:37,q:126},{number:4703,p:37,q:127},{number:4757,p:31,q:153},{number:4801,p:43,q:111},{number:4847,p:43,q:112},{number:4879,p:41,q:119},{number:4897,p:37,q:132},{number:4901,p:23,q:213},{number:4913,p:17,q:288},{number:4949,p:43,q:115},{number:4973,p:37,q:134},{number:5033,p:47,q:107},{number:5047,p:47,q:107},{number:5117,p:47,q:108},{number:5123,p:43,q:119},{number:5207,p:41,q:127},{number:5239,p:41,q:127},{number:5243,p:29,q:180},{number:5307,p:23,q:230},{number:5353,p:41,q:130},{number:5369,p:41,q:131},{number:5401,p:43,q:125},{number:5447,p:43,q:126},{number:5461,p:43,q:127},{number:5593,p:43,q:130},{number:5617,p:43,q:130},{number:5621,p:41,q:137},{number:5633,p:43,q:131},{number:5699,p:41,q:139},{number:5719,p:43,q:133},{number:5731,p:47,q:121},{number:5797,p:53,q:109},{number:5863,p:43,q:136},{number:5963,p:47,q:126},{number:6011,p:43,q:139},{number:6031,p:59,q:102},{number:6043,p:47,q:128},{number:6107,p:59,q:103},{number:6109,p:47,q:129},{number:6137,p:53,q:115},{number:6149,p:43,q:143},{number:6203,p:53,q:117},{number:6307,p:53,q:119},{number:6313,p:41,q:154},{number:6403,p:59,q:108},{number:6409,p:43,q:149},{number:6437,p:53,q:121},{number:6443,p:41,q:157},{number:6499,p:53,q:122},{number:6527,p:59,q:110},{number:6557,p:53,q:123},{number:6589,p:41,q:160},{number:6643,p:43,q:154},{number:6727,p:53,q:126},{number:6731,p:59,q:114},{number:6743,p:41,q:164},{number:6767,p:67,q:101},{number:6781,p:53,q:127},{number:6847,p:47,q:145},{number:6901,p:67,q:103},{number:6943,p:43,q:161},{number:6949,p:41,q:169},{number:6959,p:47,q:148},{number:7007,p:61,q:114},{number:7049,p:53,q:133},{number:7109,p:59,q:120},{number:7129,p:67,q:106},{number:7169,p:67,q:107},{number:7211,p:67,q:107},{number:7267,p:67,q:108},{number:7303,p:67,q:109},{number:7349,p:53,q:138},{number:7369,p:53,q:139},{number:7409,p:59,q:125},{number:7469,p:67,q:111},{number:7493,p:53,q:141},{number:7519,p:71,q:105},{number:7571,p:67,q:113},{number:7633,p:59,q:129},{number:7739,p:73,q:106},{number:7751,p:59,q:131},{number:7843,p:73,q:107},{number:7897,p:71,q:111},{number:7913,p:73,q:108},{number:7933,p:71,q:111},{number:7987,p:73,q:109},{number:8039,p:71,q:113},{number:8083,p:59,q:137},{number:8201,p:59,q:139},{number:8249,p:73,q:113},{number:8281,p:79,q:104},{number:8317,p:71,q:117},{number:8419,p:71,q:118},{number:8449,p:79,q:106},{number:8453,p:73,q:115},{number:8507,p:71,q:119},{number:8537,p:79,q:108},{number:8633,p:79,q:109},{number:8687,p:73,q:119},{number:8789,p:79,q:111},{number:8843,p:79,q:111},{number:8903,p:73,q:122},{number:8927,p:79,q:112},{number:8939,p:71,q:125},{number:8951,p:71,q:126},{number:9017,p:73,q:123},{number:9071,p:79,q:114},{number:9077,p:71,q:127},{number:9239,p:89,q:103},{number:9251,p:79,q:117},{number:9271,p:73,q:127},{number:9313,p:73,q:127},{number:9349,p:79,q:118},{number:9409,p:79,q:119},{number:9437,p:73,q:129},{number:9467,p:83,q:114},{number:9503,p:79,q:120},{number:9517,p:73,q:130},{number:9523,p:73,q:130},{number:9559,p:83,q:115},{number:9563,p:73,q:131},{number:9581,p:73,q:131},{number:9629,p:83,q:116},{number:9707,p:83,q:116},{number:9709,p:73,q:133},{number:9713,p:79,q:122},{number:9757,p:83,q:117},{number:9797,p:79,q:124},{number:9889,p:89,q:111},{number:9977,p:83,q:120}
-];
-
-let gameQuestions = [];
-let currentIdx = 0;
+let currentQuestions = [];
+let currentQuestionIndex = 0;
 let totalScore = 0;
-let correctCount = 0; 
-let inputDigits = ['0', '0'];
-let pressCount = 0;
+let correctCount = 0;
+let currentInput = "";
+let isGameActive = false;
+let startTime, endTime;
 
-let isGameStarted = false; 
-let isWaitingNext = false;  
-let isSkipped = false; 
-let remainingFactor = null;
-let hasMissedCurrentQuestion = false;
-
-let questionStartTime = 0; 
-let currentMissCount = 0;   
-
-let startTime = 0;
-let endTime = 0;
-
+// 長押しスキップ管理
 let longPressTimer = null;
 let gaugeInterval = null;
-let longPressStartTime = 0;
-const REQUIRED_PRESS_TIME = 5000; 
-
-const problemBox = document.getElementById('problem-box');
-const inputDisplay = document.getElementById('display-input');
-const backButton = document.getElementById('btn-back');
-
-document.addEventListener('touchmove', (e) => e.preventDefault(), { passive: false });
-
-// 🎮 キーパッド入力の統合制御（二重入力防止・入力制限ガード）
-document.querySelectorAll('.keypad .btn').forEach(button => {
-    const handlePress = function(e) {
-        e.preventDefault();
-        e.stopPropagation(); 
-        
-        const clickTime = performance.now(); 
-        const action = this.getAttribute('data-action');
-        if (!action) return;
-
-        // 【仕様①】ゲーム開始前の制限（Pボタン以外を完全にガード）
-        if (!isGameStarted) {
-            if (action === 'p') {
-                this.classList.add('pop-anime');
-                pressP();
-            }
-            return;
-        }
-
-        // ボタンのアニメーション発火
-        this.classList.remove('pop-anime');
-        void this.offsetWidth;
-        this.classList.add('pop-anime');
-        
-        // 【仕様③】パス（スキップ）画面中の制限（カンマ、P以外を完全にガード）
-        if (isSkipped) {
-            if (action !== 'comma' && action !== 'p') return;
-        }
-        
-        // 【仕様②】前半戦（pの入力待ち）のときはPボタンを無効化
-        if (isGameStarted && !isWaitingNext) {
-            if (action === 'p') return;
-        }
-        
-        // すべてのガードをすり抜けた正規の入力処理
-        if (action === 'back') pressBack();
-        else if (action === 'comma') pressComma();
-        else if (action === 'p') pressP();
-        else pressNum(action, clickTime);
-    };
-
-    if ('ontouchstart' in window) {
-        button.addEventListener('touchstart', handlePress, { passive: false });
-    } else {
-        button.addEventListener('mousedown', handlePress);
-    }
-});
-
-// ◀︎ボタン（ハイスコア削除長押し用）の独立したイベント制御
-const startLongPress = function(e) {
-    if (isGameStarted) return;
-    e.preventDefault();
-    e.stopPropagation();
-    
-    backButton.classList.remove('pop-anime');
-    void backButton.offsetWidth;
-    backButton.classList.add('pop-anime');
-    
-    document.getElementById('gauge-wrap').style.display = 'block';
-    longPressStartTime = performance.now();
-    
-    gaugeInterval = setInterval(() => {
-        const elapsed = performance.now() - longPressStartTime;
-        const percent = Math.min((elapsed / REQUIRED_PRESS_TIME) * 100, 100);
-        document.getElementById('gauge-fill').style.width = `${percent}%`;
-    }, 100);
-
-    longPressTimer = setTimeout(() => {
-        clearInterval(gaugeInterval);
-        document.getElementById('gauge-fill').style.width = '100%';
-        
-        setTimeout(() => {
-            resetGauge();
-            if (confirm('ハイスコアをリセットしますか？')) {
-                setStorageItem('prime_high_score', 0);
-                alert('ハイスコアをリセットしました');
-            }
-        }, 50);
-    }, REQUIRED_PRESS_TIME);
-};
-
-if ('ontouchstart' in window) {
-    backButton.addEventListener('touchstart', startLongPress, { passive: false });
-    backButton.addEventListener('touchend', resetGauge);
-    backButton.addEventListener('touchcancel', resetGauge);
-} else {
-    backButton.addEventListener('mousedown', startLongPress);
-    backButton.addEventListener('mouseup', resetGauge);
-    backButton.addEventListener('mouseleave', resetGauge);
-}
-
-document.querySelectorAll('.keypad .btn').forEach(btn => {
-    btn.addEventListener('animationend', function(e) {
-        this.classList.remove('pop-anime');
-    });
-});
-
-problemBox.addEventListener('animationend', () => problemBox.classList.remove('correct-anime'));
-inputDisplay.addEventListener('animationend', () => {
-    inputDisplay.classList.remove('flash-anime', 'wrong-anime');
-});
-
-const handleRestart = function(e) {
-    e.preventDefault();
-    setTimeout(restartGame, 100);
-};
-if ('ontouchstart' in window) {
-    document.getElementById('btn-restart').addEventListener('touchstart', handleRestart, { passive: false });
-} else {
-    document.getElementById('btn-restart').addEventListener('mousedown', handleRestart);
-}
-
-// 🚀 10問中「6問が2x2」「4問が2x3」になるよう厳密に抽出・合体・シャッフルする
-function generateGameQuestions() {
-    const shuffled2x2 = [...questionBank2x2].sort(() => 0.5 - Math.random());
-    const shuffled2x3 = [...questionBank2x3].sort(() => 0.5 - Math.random());
-    
-    const selected2x2 = shuffled2x2.slice(0, 6);
-    const selected2x3 = shuffled2x3.slice(0, 4);
-    
-    return [...selected2x2, ...selected2x3].sort(() => 0.5 - Math.random());
-}
+let longPressActive = false;
 
 function initGame() {
-    gameQuestions = generateGameQuestions();
-    currentIdx = 0;
+    // 【修正箇所】桁数による自動仕分けロジック
+    const bank2x2 = [];
+    const bank2x3 = [];
+    
+    questionBank.forEach(q => {
+        const lenP = q.p.toString().length;
+        const lenQ = q.q.toString().length;
+        
+        if (lenP === 2 && lenQ === 2) {
+            bank2x2.push(q);
+        } else if ((lenP === 2 && lenQ === 3) || (lenP === 3 && lenQ === 2)) {
+            bank2x3.push(q);
+        }
+    });
+
+    const shuffled2x2 = bank2x2.sort(() => 0.5 - Math.random());
+    const shuffled2x3 = bank2x3.sort(() => 0.5 - Math.random());
+    
+    // 最初6問を2x2桁、残り4問を2x3桁でセット
+    currentQuestions = [
+        ...shuffled2x2.slice(0, 6),
+        ...shuffled2x3.slice(0, 4)
+    ];
+    
+    currentQuestionIndex = 0;
     totalScore = 0;
     correctCount = 0;
-    isGameStarted = false;
-    isWaitingNext = false;
-    isSkipped = false;
-    inputDigits = ['0', '0'];
-    pressCount = 0;
-    remainingFactor = null;
-    hasMissedCurrentQuestion = false;
-    currentMissCount = 0;
+    isGameActive = false;
+    currentInput = "";
     
-    document.getElementById('q-num').innerText = "1";
     document.getElementById('display-sub').innerText = "";
     document.getElementById('display-main').innerText = "PRESS P";
-    
-    problemBox.className = "problem-container ready-mode";
-    updateInputDisplay();
+    document.getElementById('problem-box').className = "problem-container ready-mode";
+    document.getElementById('display-input').innerText = "00";
+    document.getElementById('q-num').innerText = "1";
     resetGauge();
 }
 
-function startFirstQuestion() {
-    isGameStarted = true;
-    startTime = performance.now(); 
-    showQuestion(); 
+function startGame() {
+    isGameActive = true;
+    startTime = performance.now();
+    showQuestion();
 }
 
 function showQuestion() {
-    if (currentIdx >= gameQuestions.length) {
-        endTime = performance.now(); 
-        showResult();
+    if (currentQuestionIndex >= 10) {
+        endGame();
         return;
     }
     
-    // 次の問題に進むので状態管理フラグを一斉クリーンリセット
-    isWaitingNext = false;
-    isSkipped = false; 
-    inputDigits = ['0', '0'];
-    pressCount = 0;
-    remainingFactor = null;
-    hasMissedCurrentQuestion = false;
-    currentMissCount = 0; 
-    document.getElementById('q-num').innerText = currentIdx + 1;
+    document.getElementById('q-num').innerText = currentQuestionIndex + 1;
+    const q = currentQuestions[currentQuestionIndex];
     
-    problemBox.className = "problem-container";
+    document.getElementById('display-sub').innerText = "";
+    document.getElementById('display-main').innerText = q.number;
+    document.getElementById('problem-box').className = "problem-container";
     
-    const currentQ = gameQuestions[currentIdx];
-    document.getElementById('display-sub').innerText = currentQ.number;
-    document.getElementById('display-main').innerText = currentQ.number;
+    currentInput = "";
+    document.getElementById('display-input').innerText = "";
     
+    const pBox = document.getElementById('problem-box');
+    pBox.classList.remove('pop-anime');
+    void pBox.offsetWidth;
+    pBox.classList.add('pop-anime');
+}
+
+function handleInput(key) {
+    if (!isGameActive) {
+        if (key === 'p') startGame();
+        return;
+    }
+    
+    if (key === 'back') {
+        if (currentInput.length > 0) {
+            currentInput = currentInput.slice(0, -1);
+            updateInputDisplay();
+        }
+        return;
+    }
+    
+    if (key === 'comma') {
+        if (currentInput.length > 0 && !currentInput.includes(',') && currentInput.slice(-1) !== ',') {
+            currentInput += ',';
+            updateInputDisplay();
+        }
+        return;
+    }
+    
+    if (key === 'p') return;
+    if (currentInput.replace(',', '').length >= 7) return;
+    
+    currentInput += key;
     updateInputDisplay();
-    questionStartTime = performance.now(); 
+    checkAnswer();
 }
 
 function updateInputDisplay() {
-    inputDisplay.innerText = inputDigits.join('');
+    document.getElementById('display-input').innerText = currentInput;
 }
 
-function triggerCorrectEffects() {
-    problemBox.classList.remove('correct-anime');
-    void problemBox.offsetWidth;
-    problemBox.classList.add('correct-anime');
-
-    inputDisplay.classList.remove('flash-anime', 'wrong-anime');
-    void inputDisplay.offsetWidth;
-    inputDisplay.classList.add('flash-anime');
-}
-
-function triggerWrongEffects() {
-    inputDisplay.classList.remove('flash-anime', 'wrong-anime');
-    void inputDisplay.offsetWidth; 
-    inputDisplay.classList.add('wrong-anime');
-}
-
-function calculateAndAddScore(clickTime) {
-    const s = (clickTime - questionStartTime) / 1000; 
-    const n = currentMissCount;                  
+function checkAnswer() {
+    const parts = currentInput.split(',');
+    if (parts.length !== 2) return;
     
-    const score = 10000 / ((s / 9 + 1) * (5 * n + 1));
-    totalScore += Math.round(score);
-}
-
-function pressNum(numStr, clickTime) {
-    if (!isGameStarted) return;
-
-    inputDigits = [inputDigits[1], numStr];
-    pressCount++;
-    updateInputDisplay();
-
-    if (pressCount >= 2) {
-        if (isWaitingNext) checkAnswerB(clickTime); 
-        else checkAnswerA();
-    }
-}
-
-// ⚙️ カンマの仕様統一（カンマ2連打でパス、1回混じりは一律ミス）
-function pressComma() {
-    if (!isGameStarted) return;
-
-    // パス画面（解答表示中）の時は、カンマ入力で即座に次の問題へ
-    if (isSkipped) {
-        currentIdx++;
-        showQuestion();
-        return;
-    }
-
-    inputDigits = [inputDigits[1], ','];
-    pressCount++;
-    updateInputDisplay();
-
-    if (pressCount >= 2) {
-        if (inputDigits[0] === ',' && inputDigits[1] === ',') {
-            triggerPass();
-        } else {
-            // カンマが1回だけ混ざった2桁が確定した場合は、一律でミス処理を走らせる
-            triggerSingleCommaMiss();
+    const inputP = parseInt(parts[0]);
+    const inputQ = parseInt(parts[1]);
+    if (isNaN(inputP) || isNaN(inputQ)) return;
+    
+    const q = currentQuestions[currentQuestionIndex];
+    
+    if ((inputP === q.p && inputQ === q.q) || (inputP === q.q && inputQ === q.p)) {
+        correctCount++;
+        totalScore += 1000; 
+        
+        const pBox = document.getElementById('problem-box');
+        pBox.classList.remove('correct-anime');
+        void pBox.offsetWidth;
+        pBox.classList.add('correct-anime');
+        
+        const iBox = document.getElementById('display-input');
+        iBox.classList.remove('flash-anime');
+        void iBox.offsetWidth;
+        iBox.classList.add('flash-anime');
+        
+        currentQuestionIndex++;
+        setTimeout(showQuestion, 250);
+    } else {
+        const ansLen = (q.p.toString() + q.q.toString()).length;
+        if (currentInput.replace(',', '').length >= ansLen) {
+            const iBox = document.getElementById('display-input');
+            iBox.classList.remove('wrong-anime');
+            void iBox.offsetWidth;
+            iBox.classList.add('wrong-anime');
         }
     }
 }
 
-function triggerSingleCommaMiss() {
-    hasMissedCurrentQuestion = true;
-    currentMissCount++;
-    triggerWrongEffects();
-    inputDigits = ['0', '0'];
-    pressCount = 0;
-    updateInputDisplay();
-}
-
-function triggerPass() {
-    // 【仕様変更対応】qの入力待ちのときは、そのまま次の問題へスキップさせる仕様（2番）を維持
-    if (isWaitingNext) {
-        currentIdx++;
-        showQuestion();
-        return;
-    }
-
-    hasMissedCurrentQuestion = true;
-    triggerWrongEffects();
-
-    inputDigits = ['0', '0'];
-    pressCount = 0;
-    updateInputDisplay();
-
-    const currentQ = gameQuestions[currentIdx];
-    document.getElementById('display-sub').innerText = `${currentQ.number} =`;
-    document.getElementById('display-main').innerText = `${currentQ.p} × ${currentQ.q}`;
+function skipQuestion() {
+    if (!isGameActive) return;
     
-    problemBox.className = "problem-container skipped-mode";
+    const q = currentQuestions[currentQuestionIndex];
+    document.getElementById('display-sub').innerText = `${q.number} =`;
+    document.getElementById('display-main').innerText = `${q.p} × ${q.q}`;
+    document.getElementById('problem-box').className = "problem-container skipped-mode";
+    document.getElementById('display-input').innerText = "PASSED";
     
-    isWaitingNext = true;
-    isSkipped = true; 
-}
-
-function checkAnswerA() {
-    const playerAns = parseInt(inputDigits.join(''));
-    const currentQ = gameQuestions[currentIdx];
-    
-    if (playerAns === currentQ.p || playerAns === currentQ.q) {
-        remainingFactor = (playerAns === currentQ.p) ? currentQ.q : currentQ.p;
-        
-        document.getElementById('display-sub').innerText = `${currentQ.number} = ${playerAns} ×`;
-        document.getElementById('display-main').innerText = remainingFactor;
-        
-        problemBox.className = "problem-container";
-        triggerCorrectEffects();
-        isWaitingNext = true;
-        
-        inputDigits = ['0', '0'];
-        pressCount = 0;
-        updateInputDisplay(); 
-    } else {
-        hasMissedCurrentQuestion = true;
-        currentMissCount++;
-        triggerWrongEffects();
-        inputDigits = ['0', '0'];
-        pressCount = 0;
-        updateInputDisplay();
-    }
-}
-
-function checkAnswerB(clickTime) {
-    if (isSkipped) return;
-
-    const playerAns = parseInt(inputDigits.join(''));
-    
-    if (playerAns === remainingFactor) {
-        if (!hasMissedCurrentQuestion) {
-            correctCount++;
-        }
-        calculateAndAddScore(clickTime); 
-        triggerCorrectEffects();
-        
-        currentIdx++;
-        showQuestion(); 
-    } else {
-        hasMissedCurrentQuestion = true;
-        currentMissCount++;
-        triggerWrongEffects();
-        inputDigits = ['0', '0'];
-        pressCount = 0;
-        updateInputDisplay();
-    }
-}
-
-function pressBack() {
-    if (!isGameStarted) return;
-    
-    inputDigits = ['0', inputDigits[0]];
-    if (pressCount > 0) pressCount--;
-    updateInputDisplay();
-}
-
-function pressP() {
-    if (!isGameStarted) {
-        startFirstQuestion();
-        return; 
-    }
-
-    // パス画面、または後半戦の待ち状態であれば次の問題へ進む（前半戦は無効化ガード済み）
-    if (isWaitingNext) {
-        triggerCorrectEffects();
-        currentIdx++;
-        showQuestion();
-    }
+    currentQuestionIndex++;
+    setTimeout(showQuestion, 1600);
 }
 
 function formatClearTime(ms) {
-    const totalSeconds = ms / 1000;
-    const minutes = Math.floor(totalSeconds / 60);
-    const seconds = Math.floor(totalSeconds % 60);
-    const milliseconds = Math.floor((ms % 1000) / 10);
-    return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}.${String(milliseconds).padStart(2, '0')}`;
+    const totalSec = ms / 1000;
+    const min = Math.floor(totalSec / 60);
+    const sec = Math.floor(totalSec % 60);
+    const msec = Math.floor((ms % 1000) / 10);
+    return `${min.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}.${msec.toString().padStart(2, '0')}`;
 }
 
-function showResult() {
+function endGame() {
+    isGameActive = false;
+    endTime = performance.now();
+    
     document.getElementById('game-view').style.display = "none";
     document.getElementById('result-view').style.display = "flex";
     
-    const accuracy = (correctCount / gameQuestions.length) * 100;
+    const accuracy = Math.round((correctCount / 10) * 100);
     document.getElementById('result-accuracy').innerText = `${accuracy}%`;
     
     const clearTimeMs = endTime - startTime;
@@ -666,9 +385,93 @@ function resetGauge() {
     if (gaugeInterval) clearInterval(gaugeInterval);
     document.getElementById('gauge-wrap').style.display = 'none';
     document.getElementById('gauge-fill').style.width = '0%';
+    longPressActive = false;
 }
 
-initGame();
+function startGauge() {
+    if (!isGameActive) return;
+    longPressActive = true;
+    const gaugeWrap = document.getElementById('gauge-wrap');
+    const gaugeFill = document.getElementById('gauge-fill');
+    
+    gaugeWrap.style.display = 'block';
+    gaugeFill.style.width = '0%';
+    
+    let startTime = Date.now();
+    const duration = 800; 
+    
+    gaugeInterval = setInterval(() => {
+        let elapsed = Date.now() - startTime;
+        let percent = Math.min((elapsed / duration) * 100, 100);
+        gaugeFill.style.width = percent + '%';
+        if (percent >= 100) clearInterval(gaugeInterval);
+    }, 20);
+    
+    longPressTimer = setTimeout(() => {
+        clearInterval(gaugeInterval);
+        gaugeWrap.style.display = 'none';
+        skipQuestion();
+    }, duration);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    initGame();
+    
+    const keyboard = document.getElementById('keyboard');
+    
+    keyboard.addEventListener('touchstart', (e) => {
+        const btn = e.target.closest('.btn');
+        if (!btn) return;
+        e.preventDefault();
+        
+        const action = btn.getAttribute('data-action');
+        if (action === 'p') {
+            startGauge();
+        } else {
+            handleInput(action);
+        }
+    }, { passive: false });
+    
+    keyboard.addEventListener('touchend', (e) => {
+        const btn = e.target.closest('.btn');
+        if (!btn) return;
+        const action = btn.getAttribute('data-action');
+        if (action === 'p') {
+            if (longPressActive && !isGameActive) {
+                handleInput('p');
+            }
+            resetGauge();
+        }
+    });
+    
+    keyboard.addEventListener('touchcancel', resetGauge);
+    
+    keyboard.addEventListener('mousedown', (e) => {
+        const btn = e.target.closest('.btn');
+        if (!btn) return;
+        const action = btn.getAttribute('data-action');
+        if (action === 'p') {
+            startGauge();
+        } else {
+            handleInput(action);
+        }
+    });
+    
+    keyboard.addEventListener('mouseup', (e) => {
+        const btn = e.target.closest('.btn');
+        if (!btn) return;
+        const action = btn.getAttribute('data-action');
+        if (action === 'p') {
+            if (longPressActive && !isGameActive) {
+                handleInput('p');
+            }
+            resetGauge();
+        }
+    });
+    
+    keyboard.addEventListener('mouseleave', resetGauge);
+    document.getElementById('btn-restart').addEventListener('click', restartGame);
+});
 </script>
 </body>
 </html>
